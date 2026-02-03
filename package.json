@@ -1,0 +1,67 @@
+{
+  "name": "easy-inn-booking-monorepo",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:mobile": "pnpm --filter mobile dev",
+    "build:web": "pnpm --filter web build",
+    "build:mobile": "pnpm --filter mobile build",
+    "preview:web": "pnpm --filter web preview",
+    "preview:mobile": "pnpm --filter mobile preview",
+    "install-all": "pnpm install",
+    "commit": "git-cz",
+    "lint": "eslint \"**/*.{vue,js,jsx,ts,tsx}\" --max-warnings 0",
+    "lint:fix": "eslint \"**/*.{vue,js,jsx,ts,tsx}\" --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,vue}\"",
+    "site:preview": "npm run build && cp -r dist _site",
+    "prepare": "husky install",
+    "test": "echo \"no test specified,work in process\"",
+    "test:coverage": "echo \"no test:coverage specified,work in process\""
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.1",
+    "@commitlint/config-conventional": "^20.4.1",
+    "@eslint/js": "^9.39.2",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "commitizen": "^4.3.1",
+    "commitlint-config-cz": "^0.13.3",
+    "cz-conventional-changelog": "^3.3.0",
+    "cz-customizable": "^7.5.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^17.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "pnpm": "^8.0.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.9.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint --config commitlint.config.js -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-conventional-changelog"
+    }
+  },
+  "cz-customizable": {
+    "config": ".cz-config.cjs"
+  },
+  "lint-staged": {
+    "*.{js,jsx,vue,ts,tsx}": [
+      "npm run lint:fix"
+    ],
+    "*.{ts,tsx,js,json,html,yml,css,less,scss,md}": [
+      "prettier --write"
+    ]
+  }
+}

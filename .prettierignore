@@ -1,0 +1,16 @@
+docs
+dist
+public
+node_modules
+
+.versionrc
+auto-imports.d.ts
+components.d.ts
+.cz-config.js
+
+**/dist/**
+**/public/**
+**/docs/**
+**/node_modules/**
+**/.versionrc/**
+**/types/**/*
