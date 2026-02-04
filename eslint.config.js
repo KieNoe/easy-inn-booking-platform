@@ -8,6 +8,15 @@ import tsParser from '@typescript-eslint/parser';
 import globals from 'globals';
 
 export default defineConfig([
+  // 忽略的文件和文件夹
+  {
+    ignores: [
+      '**/*.config.ts', // 忽略所有 xxx.config.ts 文件
+      'dist/**', // 忽略 dist 文件夹及其所有内容
+      '**/dist/**', // 也忽略嵌套在其他目录中的 dist 文件夹
+      '**/node_modules/**',
+    ],
+  },
   // 应用 ESLint 推荐的规则
   js.configs.recommended,
 
