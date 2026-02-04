@@ -1,48 +1,28 @@
 {
   "compilerOptions": {
-    // 基础配置
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM"],
-    "module": "ESNext",
-
-    // 模块解析
+    "target": "es2017",
+    "module": "commonjs",
+    "removeComments": false,
+    "preserveConstEnums": true,
     "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-
-    // JSX支持
-    "jsx": "react-jsx",
-    "jsxImportSource": "@tarojs/components",
-
-    // 严格模式
-    "strict": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": false,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "lib",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-
-    // 类型检查
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-
-    // 输出配置
-    "declaration": false,
-    "noEmit": true,
-
-    // 路径映射
-    "baseUrl": ".",
+    "strictNullChecks": true,
+    "sourceMap": true,
+    "rootDir": ".",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "typeRoots": ["node_modules/@types"],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/pages/*": ["./src/pages/*"],
-      "@/services/*": ["./src/services/*"],
-      "@/utils/*": ["./src/utils/*"],
-      "@/types/*": ["./src/types/*"]
+      // TS5090 leading './'
+      "@/*": ["./src/*"]
     }
   },
-
-  // 包含文件
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
-
-  // 排除文件
-  "exclude": ["node_modules", "dist", "build"]
+  "include": ["./src", "./types", "./config"],
+  "compileOnSave": false
 }
