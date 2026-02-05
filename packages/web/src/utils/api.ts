@@ -1,31 +1,23 @@
-// import axios from 'axios';
+import { createApiClient } from 'common';
 
-// const env = import.meta.env
+const env = import.meta.env;
 
-// const api = axios.create({
-//   baseURL: env.VITE_API_BASE_URL || 'http://localhost:8080/api',
-//   timeout: 10000,
-// });
+// 创建API客户端实例
+const apiClient = createApiClient(
+  env.VITE_API_BASE_URL || 'http://localhost:8080/api',
+  15000 // 15秒超时
+);
 
-// // 请求拦截器
-// api.interceptors.request.use(
-//   (config) => {
-//     // 添加 token 等逻辑
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   },
-// );
+// 导出常用的请求方法
+export const api = {
+  get: apiClient.get.bind(apiClient),
+  post: apiClient.post.bind(apiClient),
+  put: apiClient.put.bind(apiClient),
+  delete: apiClient.delete.bind(apiClient),
+  patch: apiClient.patch.bind(apiClient),
+};
 
-// // 响应拦截器
-// api.interceptors.response.use(
-//   (response) => {
-//     return response.data;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   },
-// );
+// 导出原始的API客户端实例（用于特殊需求）
+export { apiClient };
 
-// export default api;
+export default api;
