@@ -1,0 +1,62 @@
+.login-page-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+}
+
+.login-card .ant-card-head {
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.login-card .ant-card-head-title {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.login-card .ant-form-item {
+  margin-bottom: 20px;
+}
+
+.login-card .ant-btn {
+  height: 40px;
+  border-radius: 4px;
+}
+
+.login-card .ant-input-affix-wrapper,
+.login-card .ant-input {
+  border-radius: 4px;
+}
+
+.login-card .ant-result {
+  padding: 24px 0;
+}
+
+.login-card .ant-result-title {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .login-page-container {
+    padding: 16px;
+  }
+
+  .login-card {
+    max-width: 100%;
+  }
+
+  .login-card .ant-card-head-title {
+    font-size: 20px;
+  }
+}

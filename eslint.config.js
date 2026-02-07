@@ -15,6 +15,7 @@ export default defineConfig([
       'dist/**', // 忽略 dist 文件夹及其所有内容
       '**/dist/**', // 也忽略嵌套在其他目录中的 dist 文件夹
       '**/node_modules/**',
+      '**/backend/**',
     ],
   },
   // 应用 ESLint 推荐的规则
