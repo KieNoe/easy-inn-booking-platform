@@ -1,11 +1,19 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { viteMockServe } from 'vite-plugin-mock';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    viteMockServe({
+      mockPath: 'mocks', // mock文件存放目录
+      enable: true, // 是否启用mock
+      watchFiles: true, // 监听mock文件变化
+    }),
+  ],
   define: {
-    'process.env': process.env
+    'process.env': process.env,
   },
   resolve: {
     alias: {
