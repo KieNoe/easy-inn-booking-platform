@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Checkbox, message, Result } from 'antd';
+import md5 from 'md5';
+import api from '@/utils/api';
+import { Form, Input, Button, Card, Checkbox, message, Result, Select } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, SafetyOutlined } from '@ant-design/icons';
 import './index.css';
 
@@ -14,7 +16,11 @@ const HomePage: React.FC = () => {
   const handleLogin = async () => {
     try {
       setLoading(true);
-      // TODO: 实现登录逻辑
+      const response = await api.post('/api/user/login', {
+        username: form.getFieldValue('username'),
+        password: md5(form.getFieldValue('password')),
+      });
+      localStorage.setItem('auth_token', response.data.token);
       message.success('登录成功');
       setAuthState('success');
     } catch (error) {
@@ -28,8 +34,15 @@ const HomePage: React.FC = () => {
   const handleRegister = async () => {
     try {
       setLoading(true);
-      // TODO: 实现注册逻辑
-      message.success('注册成功');
+      const values = await form.validateFields();
+      const response = await api.post('/api/user/register', {
+        username: values.username,
+        email: values.email,
+        password: md5(values.password),
+        role: values.role,
+      });
+      localStorage.setItem('auth_token', response.data.token);
+      message.success(response.data.message || '注册成功');
       setAuthState('success');
     } catch (error) {
       message.error('注册失败');
@@ -42,10 +55,14 @@ const HomePage: React.FC = () => {
   const handleForgotPassword = async () => {
     try {
       setLoading(true);
-      // TODO: 实现找回密码逻辑
+      const values = await form.validateFields();
+      await api.post('/api/user/forgot-password/send-code', {
+        email: values.email,
+        code: values.code,
+      });
       setAuthState('resetPassword');
     } catch (error) {
-      message.error('发送失败');
+      message.error('验证失败');
       console.log(error);
     } finally {
       setLoading(false);
@@ -60,8 +77,8 @@ const HomePage: React.FC = () => {
         return;
       }
       setLoading(true);
-      // TODO: 实现发送验证码逻辑
-      message.success('验证码已发送');
+      const response = await api.post('/api/user/forgot-password/send-code', { email });
+      message.success(response.data.message || '验证码已发送');
       setCountdown(60);
       const timer = setInterval(() => {
         setCountdown((prev) => {
@@ -83,11 +100,17 @@ const HomePage: React.FC = () => {
   const handleResetPassword = async () => {
     try {
       setLoading(true);
-      //TODO：实现重置密码逻辑
+      const values = await form.validateFields();
+      await api.post('/api/user/reset-password', {
+        email: form.getFieldValue('email'),
+        code: form.getFieldValue('code'),
+        newPassword: values.newPassword,
+      });
       message.success('密码已重置');
       setAuthState('login');
+      form.resetFields();
     } catch (error) {
-      message.error('发送失败');
+      message.error('重置密码失败');
       console.log(error);
     } finally {
       setLoading(false);
@@ -179,6 +202,16 @@ const HomePage: React.FC = () => {
         ]}
       >
         <Input.Password prefix={<LockOutlined />} placeholder="确认密码" />
+      </Form.Item>
+
+      <Form.Item name="role" rules={[{ required: true, message: '请选择角色' }]}>
+        <Select
+          placeholder="请选择角色"
+          options={[
+            { label: '商户', value: 'merchant' },
+            { label: '管理员', value: 'admin' },
+          ]}
+        />
       </Form.Item>
 
       <Form.Item>
