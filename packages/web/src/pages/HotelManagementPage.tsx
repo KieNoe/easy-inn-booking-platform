@@ -1,27 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Card,
-  Table,
-  Space,
-  Button,
-  Input,
-  Select,
-  Modal,
-  message,
-  Spin,
-} from 'antd';
-import {
-  EyeOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
+import { Card, Table, Space, Button, Input, Select, Modal, message, Spin } from 'antd';
+import { EyeOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
 import { hotelService } from '@/services/hotelService';
-import { Hotel } from '@/types/hotel';
+import { Hotel, HotelStatus } from '@/types/hotel';
 import HotelAuditCard from '../components/HotelAuditCard';
 
 const { Search } = Input;
-const { Option } = Select;
 
 const HotelManagementPage: React.FC = () => {
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -36,7 +22,7 @@ const HotelManagementPage: React.FC = () => {
   });
 
   const [searchText, setSearchText] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<HotelStatus | null>(null);
 
   const loadHotels = async (page = 1, size = 10) => {
     setLoading(true);
@@ -118,31 +104,23 @@ const HotelManagementPage: React.FC = () => {
         title="酒店信息审核列表"
         extra={
           <Space>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={() =>
-                loadHotels(pagination.current, pagination.pageSize)
-              }
-            >
+            <Button icon={<ReloadOutlined />} onClick={() => loadHotels(pagination.current, pagination.pageSize)}>
               刷新
             </Button>
 
-            <Select
+            <Select<HotelStatus>
               placeholder="审核状态"
               allowClear
               style={{ width: 150 }}
-              onChange={(v) => setStatusFilter(v || null)}
-            >
-              <Option value="pending">待审核</Option>
-              <Option value="approved">已发布</Option>
-              <Option value="rejected">审核拒绝</Option>
-            </Select>
-
-            <Search
-              placeholder="搜索酒店名称 / 地址"
-              onSearch={setSearchText}
-              style={{ width: 260 }}
+              onChange={(v) => setStatusFilter(v ?? null)}
+              options={[
+                { value: 'pending', label: '待审核' },
+                { value: 'approved', label: '已发布' },
+                { value: 'rejected', label: '审核拒绝' },
+              ]}
             />
+
+            <Search placeholder="搜索酒店名称 / 地址" onSearch={setSearchText} style={{ width: 260 }} />
           </Space>
         }
       >
@@ -155,27 +133,14 @@ const HotelManagementPage: React.FC = () => {
               ...pagination,
               showTotal: (t) => `共 ${t} 条`,
             }}
-            onChange={(p) =>
-              loadHotels(p.current!, p.pageSize!)
-            }
+            onChange={(p) => loadHotels(p.current!, p.pageSize!)}
             locale={{ emptyText: '暂无待审核酒店' }}
           />
         </Spin>
       </Card>
 
-      <Modal
-        open={modalVisible}
-        footer={null}
-        onCancel={() => setModalVisible(false)}
-        width={600}
-      >
-        {currentHotel && (
-          <HotelAuditCard
-            hotel={currentHotel}
-            onApprove={handleApprove}
-            onReject={handleReject}
-          />
-        )}
+      <Modal open={modalVisible} footer={null} onCancel={() => setModalVisible(false)} width={600}>
+        {currentHotel && <HotelAuditCard hotel={currentHotel} onApprove={handleApprove} onReject={handleReject} />}
       </Modal>
     </div>
   );

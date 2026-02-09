@@ -1,13 +1,7 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createApiClient = exports.ApiClient = void 0;
-const axios_1 = __importDefault(require("axios"));
+import axios from 'axios';
 class ApiClient {
     constructor(baseURL, timeout = 10000) {
-        this.instance = axios_1.default.create({
+        this.instance = axios.create({
             baseURL,
             timeout,
             headers: {
@@ -103,10 +97,9 @@ class ApiClient {
         return this.instance;
     }
 }
-exports.ApiClient = ApiClient;
 // 创建默认的API客户端实例
 const createApiClient = (baseURL, timeout) => {
     return new ApiClient(baseURL, timeout);
 };
-exports.createApiClient = createApiClient;
-exports.default = createApiClient;
+export { ApiClient, createApiClient };
+export default createApiClient;
