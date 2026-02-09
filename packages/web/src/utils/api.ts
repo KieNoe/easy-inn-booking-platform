@@ -1,9 +1,9 @@
-import { createApiClient } from 'common';
+import * as common from 'common';
 
 const env = import.meta.env;
 
 // 创建API客户端实例
-const apiClient = createApiClient(
+const apiClient = common.createApiClient(
   env.VITE_API_BASE_URL || 'http://localhost:8080/api',
   15000, // 15秒超时
 );
