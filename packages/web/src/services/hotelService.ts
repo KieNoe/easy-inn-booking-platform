@@ -27,6 +27,12 @@ export const hotelService = {
     return response;
   },
 
+  // 更新酒店信息
+  updateHotel: async (id: number, data: Partial<Hotel>) => {
+    const response = await api.put(`/hotels/${id}`, data);
+    return response;
+  },
+
   // 更新酒店状态
   updateHotelStatus: async (id: number, data: UpdateHotelStatusRequest) => {
     const response = await api.put(`/hotels/${id}/status`, data);
