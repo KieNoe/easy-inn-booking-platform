@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Affix,
   Button,
@@ -26,6 +26,9 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
+import { hotelService } from '@/services/hotelService';
+import type { HotelDraftRequest, HotelRoomType, HotelStatus } from '@/types/hotel';
+
 import './index.css';
 
 const { Title, Text } = Typography;
@@ -42,19 +45,121 @@ const bedTypeOptions = ['大床', '双床', '榻榻米', '上下铺'];
 const HotelEditPage: React.FC = () => {
   const [form] = Form.useForm();
   const allValues = Form.useWatch([], form);
+  const [draftId, setDraftId] = useState<number | null>(null);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [hasErrors, setHasErrors] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
-  const handleSubmit = () => {
-    message.success('已保存酒店信息草稿');
+  const updateFormStatus = (_: any, allFields: any[]) => {
+    setIsDirty(allFields.some((field) => field.touched));
+    setHasErrors(allFields.some((field) => field.errors?.length));
+  };
+
+  const buildPayload = (values: any, status: HotelStatus): HotelDraftRequest => {
+    const roomTypes: HotelRoomType[] = (values?.roomTypes || []).map((room: HotelRoomType) => ({
+      name: room?.name || '',
+      bedType: room?.bedType || '',
+      area: Number(room?.area || 0),
+      price: Number(room?.price || 0),
+      stock: Number(room?.stock || 0),
+    }));
+
+    const openDate = values?.basic?.openDate ? dayjs(values.basic.openDate).format('YYYY-MM-DD') : '';
+
+    return {
+      name: values?.basic?.nameCn || '',
+      description: values?.basic?.nameEn || '',
+      address: values?.basic?.address || '',
+      price: Number(values?.priceRange?.min || 0),
+      basic: {
+        nameCn: values?.basic?.nameCn || '',
+        nameEn: values?.basic?.nameEn || '',
+        star: Number(values?.basic?.star || 0),
+        openDate,
+        address: values?.basic?.address || '',
+      },
+      priceRange: {
+        min: Number(values?.priceRange?.min || 0),
+        max: Number(values?.priceRange?.max || 0),
+      },
+      roomTypes,
+      nearby: values?.nearby,
+      promotions: values?.promotions,
+      status,
+    };
+  };
+
+  const unwrapResponse = (response: any) => response?.data?.data ?? response?.data ?? response;
+
+  const saveDraft = async (status: HotelStatus = 'draft') => {
+    const values = await form.validateFields();
+    const payload = buildPayload(values, status);
+
+    if (draftId) {
+      await hotelService.updateHotel(draftId, payload);
+      return draftId;
+    }
+
+    const response = await hotelService.createHotel(payload);
+    const created = unwrapResponse(response);
+    const nextId = created?.hotelId ?? created?.id ?? null;
+    if (nextId) {
+      setDraftId(nextId);
+    }
+    return nextId;
+  };
+
+  const handleSaveDraft = async () => {
+    if (!form.isFieldsTouched(true)) {
+      message.info('暂无修改内容');
+      return;
+    }
+
+    setSavingDraft(true);
+    try {
+      await saveDraft('draft');
+      setIsDirty(false);
+      setLastSavedAt(dayjs().format('YYYY-MM-DD HH:mm'));
+      message.success('已保存酒店信息草稿');
+    } catch (error: any) {
+      if (error?.errorFields) {
+        message.error('请完善必填信息');
+      } else {
+        message.error('保存草稿失败，请稍后再试');
+      }
+    } finally {
+      setSavingDraft(false);
+    }
   };
 
   const handleAuditSubmit = async () => {
+    setSubmitting(true);
     try {
-      await form.validateFields();
+      const targetId = await saveDraft('pending');
+      if (targetId) {
+        await hotelService.updateHotelStatus(targetId, { status: 'pending' });
+      }
+      setIsDirty(false);
+      setLastSavedAt(dayjs().format('YYYY-MM-DD HH:mm'));
       message.success('已提交审核');
-    } catch {
-      message.error('请完善必填信息');
+    } catch (error: any) {
+      if (error?.errorFields) {
+        message.error('请完善必填信息');
+      } else {
+        message.error('提交审核失败，请稍后再试');
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  const canSubmit = useMemo(() => !savingDraft && !submitting && !hasErrors, [savingDraft, submitting, hasErrors]);
+  const canSaveDraft = useMemo(
+    () => isDirty && !savingDraft && !submitting && !hasErrors,
+    [isDirty, savingDraft, submitting, hasErrors],
+  );
 
   return (
     <div className="hotel-edit-page">
@@ -76,6 +181,7 @@ const HotelEditPage: React.FC = () => {
             form={form}
             layout="vertical"
             className="hotel-form"
+            onFieldsChange={updateFormStatus}
             initialValues={{
               basic: {
                 nameCn: '易宿臻选酒店',
@@ -170,7 +276,19 @@ const HotelEditPage: React.FC = () => {
                   <Form.Item
                     label="酒店起订价"
                     name={['priceRange', 'min']}
-                    rules={[{ required: true, message: '请输入起订价' }]}
+                    rules={[
+                      { required: true, message: '请输入起订价' },
+                      { type: 'number', min: 0, message: '价格不能为负数' },
+                      ({ getFieldValue }) => ({
+                        validator: (_, value) => {
+                          const maxValue = getFieldValue(['priceRange', 'max']);
+                          if (value != null && maxValue != null && value > maxValue) {
+                            return Promise.reject(new Error('起订价不能高于封顶价'));
+                          }
+                          return Promise.resolve();
+                        },
+                      }),
+                    ]}
                   >
                     <InputNumber className="full-width" prefix={<DollarOutlined />} min={0} step={50} />
                   </Form.Item>
@@ -179,7 +297,19 @@ const HotelEditPage: React.FC = () => {
                   <Form.Item
                     label="酒店封顶价"
                     name={['priceRange', 'max']}
-                    rules={[{ required: true, message: '请输入封顶价' }]}
+                    rules={[
+                      { required: true, message: '请输入封顶价' },
+                      { type: 'number', min: 0, message: '价格不能为负数' },
+                      ({ getFieldValue }) => ({
+                        validator: (_, value) => {
+                          const minValue = getFieldValue(['priceRange', 'min']);
+                          if (value != null && minValue != null && value < minValue) {
+                            return Promise.reject(new Error('封顶价不能低于起订价'));
+                          }
+                          return Promise.resolve();
+                        },
+                      }),
+                    ]}
                   >
                     <InputNumber className="full-width" prefix={<DollarOutlined />} min={0} step={50} />
                   </Form.Item>
@@ -196,8 +326,19 @@ const HotelEditPage: React.FC = () => {
                 </Space>
               }
             >
-              <Form.List name="roomTypes">
-                {(fields, { add, remove }) => (
+              <Form.List
+                name="roomTypes"
+                rules={[
+                  {
+                    validator: async (_, value) => {
+                      if (!value || value.length === 0) {
+                        return Promise.reject(new Error('至少添加一个房型'));
+                      }
+                    },
+                  },
+                ]}
+              >
+                {(fields, { add, remove }, { errors }) => (
                   <Space direction="vertical" className="full-width" size="large">
                     {fields.map((field) => (
                       <Card
@@ -257,7 +398,30 @@ const HotelEditPage: React.FC = () => {
                             <Form.Item
                               label="每晚价格"
                               name={[field.name, 'price']}
-                              rules={[{ required: true, message: '请输入价格' }]}
+                              dependencies={[
+                                ['priceRange', 'min'],
+                                ['priceRange', 'max'],
+                              ]}
+                              rules={[
+                                { required: true, message: '请输入价格' },
+                                { type: 'number', min: 0, message: '价格不能为负数' },
+                                ({ getFieldValue }) => ({
+                                  validator: (_, value) => {
+                                    if (value == null) {
+                                      return Promise.resolve();
+                                    }
+                                    const minValue = getFieldValue(['priceRange', 'min']);
+                                    const maxValue = getFieldValue(['priceRange', 'max']);
+                                    if (minValue != null && value < minValue) {
+                                      return Promise.reject(new Error('每晚价格不能低于起订价'));
+                                    }
+                                    if (maxValue != null && value > maxValue) {
+                                      return Promise.reject(new Error('每晚价格不能高于封顶价'));
+                                    }
+                                    return Promise.resolve();
+                                  },
+                                }),
+                              ]}
                             >
                               <InputNumber className="full-width" prefix={<DollarOutlined />} min={0} step={50} />
                             </Form.Item>
@@ -274,6 +438,7 @@ const HotelEditPage: React.FC = () => {
                         </Row>
                       </Card>
                     ))}
+                    <Form.ErrorList errors={errors} />
                     <Button type="dashed" onClick={() => add()} block>
                       添加房型
                     </Button>
@@ -382,11 +547,22 @@ const HotelEditPage: React.FC = () => {
 
             <Divider />
             <Space size="middle">
-              <Button type="primary" onClick={handleAuditSubmit}>
+              <Button type="primary" onClick={handleAuditSubmit} loading={submitting} disabled={!canSubmit}>
                 提交审核
               </Button>
-              <Button onClick={handleSubmit}>保存草稿</Button>
-              <Button onClick={() => form.resetFields()}>重置</Button>
+              <Button onClick={handleSaveDraft} loading={savingDraft} disabled={!canSaveDraft}>
+                保存草稿
+              </Button>
+              <Button
+                onClick={() => {
+                  form.resetFields();
+                  setIsDirty(false);
+                  setHasErrors(false);
+                }}
+                disabled={savingDraft || submitting}
+              >
+                重置
+              </Button>
             </Space>
           </Form>
         </Col>
@@ -447,6 +623,14 @@ const HotelEditPage: React.FC = () => {
                         {promo?.title || '优惠'}
                       </Tag>
                     ))}
+                  </Space>
+                </div>
+
+                <div className="preview-block">
+                  <Text className="preview-label">草稿状态</Text>
+                  <Space>
+                    <Tag color={draftId ? 'gold' : 'default'}>{draftId ? `草稿 #${draftId}` : '未保存'}</Tag>
+                    <Text type="secondary">{lastSavedAt ? `最近保存：${lastSavedAt}` : '尚未保存'}</Text>
                   </Space>
                 </div>
               </Space>

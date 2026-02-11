@@ -3,18 +3,20 @@ import { message } from 'antd';
 import { hotelService } from '@/services/hotelService';
 import type { Hotel } from '@/types/hotel';
 
+/* eslint-disable no-unused-vars -- type-only parameters in interface */
 interface UseHotelStateReturn {
   hotels: Hotel[];
   loading: boolean;
   approving: boolean;
   rejecting: boolean;
   updating: boolean;
-  fetchHotels: (page?: number, size?: number, search?: string, status?: string) => Promise<void>;
-  approveHotel: (id: number) => Promise<void>;
-  rejectHotel: (id: number) => Promise<void>;
-  updateHotel: (id: number, data: Partial<Hotel>) => Promise<void>;
-  deleteHotel: (id: number) => Promise<void>;
+  fetchHotels: (_page?: number, _size?: number, _search?: string, _status?: string) => Promise<void>;
+  approveHotel: (_id: number) => Promise<void>;
+  rejectHotel: (_id: number) => Promise<void>;
+  updateHotel: (_id: number, _data: Partial<Hotel>) => Promise<void>;
+  deleteHotel: (_id: number) => Promise<void>;
 }
+/* eslint-enable no-unused-vars */
 
 export const useHotelState = (): UseHotelStateReturn => {
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -48,11 +50,11 @@ export const useHotelState = (): UseHotelStateReturn => {
     try {
       const response = await hotelService.updateHotelStatus(id, { status: 'approved' });
       message.success('酒店已通过审核');
-      
+
       // 更新本地状态
-      setHotels(prev => prev.map(hotel => 
-        hotel.hotelId === id ? { ...response.data.data, status: 'approved' } : hotel
-      ));
+      setHotels((prev) =>
+        prev.map((hotel) => (hotel.hotelId === id ? { ...response.data.data, status: 'approved' } : hotel)),
+      );
     } catch (error) {
       console.error('Failed to approve hotel:', error);
       message.error('审核通过失败');
@@ -67,11 +69,11 @@ export const useHotelState = (): UseHotelStateReturn => {
     try {
       const response = await hotelService.updateHotelStatus(id, { status: 'rejected' });
       message.success('酒店已拒绝');
-      
+
       // 更新本地状态
-      setHotels(prev => prev.map(hotel => 
-        hotel.hotelId === id ? { ...response.data.data, status: 'rejected' } : hotel
-      ));
+      setHotels((prev) =>
+        prev.map((hotel) => (hotel.hotelId === id ? { ...response.data.data, status: 'rejected' } : hotel)),
+      );
     } catch (error) {
       console.error('Failed to reject hotel:', error);
       message.error('拒绝失败');
@@ -86,11 +88,9 @@ export const useHotelState = (): UseHotelStateReturn => {
     try {
       const response = await hotelService.updateHotel(id, data);
       const updatedHotel = response.data.data;
-      
-      setHotels(prev => prev.map(hotel => 
-        hotel.hotelId === id ? updatedHotel : hotel
-      ));
-      
+
+      setHotels((prev) => prev.map((hotel) => (hotel.hotelId === id ? updatedHotel : hotel)));
+
       message.success('酒店信息更新成功');
     } catch (error) {
       console.error('Failed to update hotel:', error);
@@ -105,9 +105,9 @@ export const useHotelState = (): UseHotelStateReturn => {
     try {
       await hotelService.deleteHotel(id);
       message.success('酒店删除成功');
-      
+
       // 从本地状态移除
-      setHotels(prev => prev.filter(hotel => hotel.hotelId !== id));
+      setHotels((prev) => prev.filter((hotel) => hotel.hotelId !== id));
     } catch (error) {
       console.error('Failed to delete hotel:', error);
       message.error('删除酒店失败');
