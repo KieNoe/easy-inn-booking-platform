@@ -1,5 +1,5 @@
 import { api } from '@/utils/api';
-import { Hotel, CreateHotelRequest, UpdateHotelStatusRequest } from '@/types/hotel';
+import { CreateHotelRequest, UpdateHotelRequest, UpdateHotelStatusRequest } from '@/types/hotel';
 
 export interface GetHotelsParams {
   page?: number;
@@ -28,7 +28,7 @@ export const hotelService = {
   },
 
   // 更新酒店信息
-  updateHotel: async (id: number, data: Partial<Hotel>) => {
+  updateHotel: async (id: number, data: UpdateHotelRequest) => {
     const response = await api.put(`/hotels/${id}`, data);
     return response;
   },

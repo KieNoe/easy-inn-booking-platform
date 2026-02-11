@@ -21,6 +21,9 @@
 //     }
 //   }
 // ]
+let mockHotelId = 3001;
+const mockHotels: any[] = [];
+
 export default [
   {
     url: '/api/user/login',
@@ -122,6 +125,90 @@ export default [
         code: 200,
         message: '密码重置成功',
         data: null,
+      };
+    },
+  },
+  {
+    url: '/api/hotels',
+    method: 'get',
+    response: () => {
+      return {
+        code: 200,
+        message: '获取成功',
+        data: {
+          content: mockHotels,
+          totalElements: mockHotels.length,
+        },
+      };
+    },
+  },
+  {
+    url: '/api/hotels',
+    method: 'post',
+    response: (req) => {
+      const { body } = req;
+      const created = {
+        ...body,
+        hotelId: mockHotelId++,
+        status: body?.status || 'draft',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      mockHotels.unshift(created);
+      return {
+        code: 200,
+        message: '创建成功',
+        data: created,
+      };
+    },
+  },
+  {
+    url: '/api/hotels/:id',
+    method: 'put',
+    response: (req) => {
+      const { id } = req.params;
+      const { body } = req;
+      const index = mockHotels.findIndex((item) => String(item.hotelId) === String(id));
+      const updated = {
+        ...(index >= 0 ? mockHotels[index] : {}),
+        ...body,
+        hotelId: Number(id),
+        updatedAt: new Date().toISOString(),
+      };
+      if (index >= 0) {
+        mockHotels[index] = updated;
+      } else {
+        mockHotels.unshift(updated);
+      }
+      return {
+        code: 200,
+        message: '更新成功',
+        data: updated,
+      };
+    },
+  },
+  {
+    url: '/api/hotels/:id/status',
+    method: 'put',
+    response: (req) => {
+      const { id } = req.params;
+      const { body } = req;
+      const index = mockHotels.findIndex((item) => String(item.hotelId) === String(id));
+      const updated = {
+        ...(index >= 0 ? mockHotels[index] : {}),
+        status: body?.status || 'pending',
+        hotelId: Number(id),
+        updatedAt: new Date().toISOString(),
+      };
+      if (index >= 0) {
+        mockHotels[index] = updated;
+      } else {
+        mockHotels.unshift(updated);
+      }
+      return {
+        code: 200,
+        message: '状态更新成功',
+        data: updated,
       };
     },
   },
