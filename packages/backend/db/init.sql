@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
   INDEX idx_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 
--- 初始管理员账户（密码：123456 的 bcrypt 加密值）
+-- 初始管理员账户（密码：123456 的 MD5 再 bcrypt 加密值）
 -- 实际部署时请修改密码
 INSERT INTO users (username, password, nickname, role, status) VALUES
-('admin', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3djPvga3eJm', '管理员', 'super_admin', 'active')
+('admin', '$2a$10$vFzppBQb3gbH7KsHSIe1tuKzshMs1AX2mfZ7DGmqtIX6z.k9Ex7gu', '管理员', 'super_admin', 'active')
 ON DUPLICATE KEY UPDATE username=username;

@@ -48,6 +48,37 @@ export class UserController {
   }
 
   /**
+   * 用户注册
+   */
+  async register(req: Request, res: Response): Promise<void> {
+    try {
+      const { username, password, nickname, email, phone, role } = req.body;
+
+      if (!username || !password) {
+        errors.badRequest(res, '请求参数缺失');
+        return;
+      }
+
+      const result = await UserService.register({
+        username,
+        password,
+        nickname,
+        email,
+        phone,
+        role,
+      });
+
+      successResponse(res, result, '注册成功');
+    } catch (error: any) {
+      if (error.message === '用户名已存在') {
+        errors.badRequest(res, error.message);
+      } else {
+        errors.serverError(res, error.message);
+      }
+    }
+  }
+
+  /**
    * 退出登录
    */
   logout(req: Request, res: Response): void {
