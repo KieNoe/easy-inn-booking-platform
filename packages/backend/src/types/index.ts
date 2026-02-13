@@ -33,6 +33,21 @@ export interface LoginResponse {
   expireTime: number;
 }
 
+export interface RegisterRequest {
+  username: string;
+  password: string;
+  nickname?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+}
+
+export interface RegisterResponse {
+  token: string;
+  userInfo: User;
+  expireTime: number;
+}
+
 /**
  * JWT Payload
  */

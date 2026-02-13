@@ -69,6 +69,7 @@ src/
 ### 已实现接口
 
 - `POST /api/user/login` - 用户登录
+- `POST /api/user/register` - 用户注册
 - `GET /api/user/info` - 获取用户信息（需要 token）
 - `POST /api/user/logout` - 退出登录（需要 token）
 
@@ -87,14 +88,14 @@ src/
 
 ## 环境变量
 
-| 变量 | 说明 | 示例 |
-|------|------|------|
-| PORT | 服务器端口 | 8080 |
-| NODE_ENV | 环境 | development |
-| DB_HOST | 数据库主机 | localhost |
-| DB_PORT | 数据库端口 | 3306 |
-| DB_NAME | 数据库名 | easy_inn_booking |
-| DB_USER | 数据库用户 | root |
-| DB_PASSWORD | 数据库密码 | password |
-| JWT_SECRET | JWT 密钥 | your_secret_key |
-| JWT_EXPIRES_IN | Token 过期时间 | 2h |
+| 变量           | 说明           | 示例             |
+| -------------- | -------------- | ---------------- |
+| PORT           | 服务器端口     | 8080             |
+| NODE_ENV       | 环境           | development      |
+| DB_HOST        | 数据库主机     | localhost        |
+| DB_PORT        | 数据库端口     | 3306             |
+| DB_NAME        | 数据库名       | easy_inn_booking |
+| DB_USER        | 数据库用户     | root             |
+| DB_PASSWORD    | 数据库密码     | password         |
+| JWT_SECRET     | JWT 密钥       | your_secret_key  |
+| JWT_EXPIRES_IN | Token 过期时间 | 2h               |
