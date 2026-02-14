@@ -1,5 +1,5 @@
 {
-  "name": "easy-inn-booking-platform",
+  "name": "@easy-inn-booking-monorepo/mobile",
   "version": "1.0.0",
   "private": true,
   "description": "易宿酒店预订平台",
@@ -57,8 +57,7 @@
     "react-dom": "^18.0.0",
     "scss": "^0.2.4",
     "taro-ui": "^3.3.0",
-    "tdesign-icons-react": "^0.6.2",
-    "tdesign-mobile-react": "^0.21.1"
+    "@easy-inn-booking-monorepo/common": "workspace:*"
   },
   "devDependencies": {
     "@babel/core": "^7.24.4",

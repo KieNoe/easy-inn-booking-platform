@@ -1,5 +1,5 @@
 {
-  "name": "web",
+  "name": "@easy-inn-booking-monorepo/web",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -12,7 +12,7 @@
     "@reduxjs/toolkit": "^1.9.0",
     "antd": "6.2.3",
     "axios": "^1.13.4",
-    "common": "workspace:*",
+    "@easy-inn-booking-monorepo/common": "workspace:*",
     "dayjs": "^1.11.19",
     "md5": "^2.3.0",
     "react": "^18.2.0",
