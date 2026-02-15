@@ -289,11 +289,11 @@ export default function List() {
           </View>
         ) : (
           hotels.map((hotel) => (
-            <View key={hotel.id} className="hotel-card" onClick={() => navigateToDetail(hotel.id)}>
+            <View key={hotel.hotelId} className="hotel-card" onClick={() => navigateToDetail(hotel.hotelId)}>
               <View className="hotel-image-wrapper">
                 <Image
                   className="hotel-image"
-                  src={hotel.thumbnail || 'https://via.placeholder.com/200x150?text=Hotel'}
+                  src={hotel.images[0] || 'https://via.placeholder.com/200x150?text=Hotel'}
                   mode="aspectFill"
                 />
                 {hotel.isDiscount && (
@@ -305,7 +305,7 @@ export default function List() {
               <View className="hotel-info">
                 <View className="hotel-header">
                   <Text className="hotel-name">{hotel.name}</Text>
-                  <View className="star-rating">{renderStars(hotel.starRating || 0)}</View>
+                  <View className="star-rating">{renderStars(hotel.hotelRating || 0)}</View>
                 </View>
 
                 <View className="hotel-rating-row">
