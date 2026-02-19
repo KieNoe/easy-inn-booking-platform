@@ -15,11 +15,11 @@ interface CalendarDay {
 }
 
 interface CalendarProps {
-  startDate?: Date;
-  endDate?: Date;
+  // startDate?: Date;
+  // endDate?: Date;
   minDate?: Date;
   maxDate?: Date;
-  onDateSelect?: (startDate: Date, endDate: Date | null) => void;
+  // onDateSelect?: (startDate: Date, endDate: Date | null) => void;
   mode?: 'single' | 'range'; // 单选或范围选择
 }
 
@@ -29,7 +29,7 @@ const Calendar: Taro.FC<CalendarProps> = ({
   minDate = new Date(),
   maxDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 默认一年后
   onDateSelect,
-  mode = 'range'
+  mode = 'range',
 }) => {
   const [currentDate, setCurrentDate] = useState<Date>(startDate || new Date());
   const [days, setDays] = useState<CalendarDay[]>([]);
@@ -40,54 +40,54 @@ const Calendar: Taro.FC<CalendarProps> = ({
   const generateCalendarDays = (date: Date): CalendarDay[] => {
     const year = date.getFullYear();
     const month = date.getMonth();
-    
+
     // 获取当月第一天和最后一天
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
-    
+
     // 获取当月第一天是星期几
     const firstDayOfWeek = firstDayOfMonth.getDay();
-    
+
     // 获取当月天数
     const daysInMonth = lastDayOfMonth.getDate();
-    
+
     // 计算需要显示的总天数（包括上个月和下个月的部分天数）
     const totalDays = Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7;
-    
+
     const calendarDays: CalendarDay[] = [];
-    
+
     // 添加上个月的天数
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       const day = new Date(year, month, -i);
       calendarDays.push(createCalendarDay(day, false));
     }
-    
+
     // 添加当月的天数
     for (let i = 1; i <= daysInMonth; i++) {
       const day = new Date(year, month, i);
       calendarDays.push(createCalendarDay(day, true));
     }
-    
+
     // 添加下个月的天数
     const remainingDays = totalDays - calendarDays.length;
     for (let i = 1; i <= remainingDays; i++) {
       const day = new Date(year, month + 1, i);
       calendarDays.push(createCalendarDay(day, false));
     }
-    
+
     return calendarDays;
   };
 
   const createCalendarDay = (date: Date, isCurrentMonth: boolean): CalendarDay => {
     const today = new Date();
     const isToday = date.toDateString() === today.toDateString();
-    
+
     // 检查日期是否在允许范围内
     const isDisabled = date < minDate || date > maxDate;
-    
+
     // 检查是否是周末
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-    
+
     return {
       date,
       day: date.getDate(),
@@ -97,7 +97,7 @@ const Calendar: Taro.FC<CalendarProps> = ({
       isToday,
       isDisabled,
       isWeekend,
-      dateString: formatDate(date)
+      dateString: formatDate(date),
     };
   };
 
@@ -144,7 +144,10 @@ const Calendar: Taro.FC<CalendarProps> = ({
       }
     } else {
       // 范围选择模式
-      if (!selectedStartDate || (selectedStartDate && selectedEndDate && formatDate(day.date) !== formatDate(selectedStartDate))) {
+      if (
+        !selectedStartDate ||
+        (selectedStartDate && selectedEndDate && formatDate(day.date) !== formatDate(selectedStartDate))
+      ) {
         // 如果还没有开始日期，或者已经有了结束日期且点击的不是起始日期，则设置为新的开始日期
         setSelectedStartDate(day.date);
         setSelectedEndDate(null);
@@ -172,19 +175,16 @@ const Calendar: Taro.FC<CalendarProps> = ({
 
   // 切换月份
   const goToPreviousMonth = () => {
-    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
   };
 
   const goToNextMonth = () => {
-    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
 
   // 获取月份名称
   const getMonthName = (month: number): string => {
-    const months = [
-      '一月', '二月', '三月', '四月', '五月', '六月',
-      '七月', '八月', '九月', '十月', '十一月', '十二月'
-    ];
+    const months = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
     return months[month];
   };
 
@@ -230,45 +230,29 @@ const Calendar: Taro.FC<CalendarProps> = ({
                   const isStart = isStartDate(day);
                   const isEnd = isEndDate(day);
                   const inRange = isInRange(day);
-                  
+
                   return (
                     <View
                       key={dayIndex}
-                      className={`calendar-day-cell ${
-                        day.isCurrentMonth ? 'current-month' : 'other-month'
-                      } ${
+                      className={`calendar-day-cell ${day.isCurrentMonth ? 'current-month' : 'other-month'} ${
                         day.isToday ? 'today' : ''
-                      } ${
-                        isSelected ? 'selected' : ''
-                      } ${
-                        isStart ? 'start-date' : ''
-                      } ${
-                        isEnd ? 'end-date' : ''
-                      } ${
+                      } ${isSelected ? 'selected' : ''} ${isStart ? 'start-date' : ''} ${isEnd ? 'end-date' : ''} ${
                         inRange ? 'in-range' : ''
-                      } ${
-                        day.isDisabled ? 'disabled' : ''
-                      } ${
-                        day.isWeekend ? 'weekend' : ''
-                      }`}
+                      } ${day.isDisabled ? 'disabled' : ''} ${day.isWeekend ? 'weekend' : ''}`}
                       onClick={() => handleDateClick(day)}
                     >
                       <View className="day-wrapper">
-                        <Text className="day-number">
-                          {day.day}
-                        </Text>
+                        <Text className="day-number">{day.day}</Text>
                         {day.isToday && <Text className="today-label">今</Text>}
                       </View>
-                      
+
                       {/* 选中日期的背景色 */}
                       {(isSelected || isStart || isEnd) && (
                         <View className={`selected-bg ${isStart ? 'start' : isEnd ? 'end' : 'range'}`}></View>
                       )}
-                      
+
                       {/* 范围选择的连接线 */}
-                      {inRange && (
-                        <View className="range-connector"></View>
-                      )}
+                      {inRange && <View className="range-connector"></View>}
                     </View>
                   );
                 })}
