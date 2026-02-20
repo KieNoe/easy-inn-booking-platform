@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import md5 from 'md5';
 import api from '@/utils/api';
 import { Form, Input, Button, Card, Checkbox, message, Result, Select } from 'antd';
@@ -7,24 +8,72 @@ import './index.css';
 
 type AuthState = 'login' | 'register' | 'forgotPassword' | 'resetPassword' | 'success';
 
-const HomePage: React.FC = () => {
+interface ApiResponse<T = unknown> {
+  code: number;
+  message: string;
+  data: T;
+}
+
+interface LoginData {
+  token: string;
+  userInfo: {
+    userId: number;
+    username: string;
+    role: string;
+    avatar: string;
+  };
+  expireTime: number;
+}
+
+interface RegisterData {
+  userId: number;
+  username: string;
+  email: string;
+  role: string;
+  createTime: string;
+}
+
+const LoginPage: React.FC = () => {
   const [authState, setAuthState] = useState<AuthState>('login');
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const timerRef = useRef<any>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   const handleLogin = async () => {
     try {
       setLoading(true);
-      const response = await api.post('/api/user/login', {
+      const response = await api.post<ApiResponse<LoginData>>('/api/user/login', {
         username: form.getFieldValue('username'),
         password: md5(form.getFieldValue('password')),
       });
+      if (response.code !== 200) {
+        message.error(response.message || '登录失败');
+        return;
+      }
       localStorage.setItem('auth_token', response.data.token);
+      localStorage.setItem('user_info', JSON.stringify(response.data.userInfo));
       message.success('登录成功');
       setAuthState('success');
+      if (response.data.userInfo.role === 'admin') {
+        navigate('/hotel-management');
+      } else if (response.data.userInfo.role === 'merchant') {
+        navigate('/hotel-edit');
+      } else {
+        message.error('无权限访问');
+        return;
+      }
     } catch (error) {
-      message.error('登录失败');
+      message.error('网络错误，请稍后重试');
       console.log(error);
     } finally {
       setLoading(false);
@@ -35,17 +84,21 @@ const HomePage: React.FC = () => {
     try {
       setLoading(true);
       const values = await form.validateFields();
-      const response = await api.post('/api/user/register', {
+      const response = await api.post<ApiResponse<RegisterData>>('/api/user/register', {
         username: values.username,
         email: values.email,
         password: md5(values.password),
         role: values.role,
       });
-      localStorage.setItem('auth_token', response.data.token);
-      message.success(response.data.message || '注册成功');
-      setAuthState('success');
+      if (response.code !== 200) {
+        message.error(response.message || '注册失败');
+        return;
+      }
+      message.success('注册成功，请登录');
+      setAuthState('login');
+      form.resetFields();
     } catch (error) {
-      message.error('注册失败');
+      message.error('网络错误，请稍后重试');
       console.log(error);
     } finally {
       setLoading(false);
@@ -55,14 +108,22 @@ const HomePage: React.FC = () => {
   const handleForgotPassword = async () => {
     try {
       setLoading(true);
-      const values = await form.validateFields();
-      await api.post('/api/user/forgot-password/send-code', {
-        email: values.email,
-        code: values.code,
+      const values = await form.validateFields(['email', 'code']);
+      const response = await api.post<ApiResponse<null>>('/api/user/forgot-password/verify-code', {
+        email: form.getFieldValue('email'),
+        code: form.getFieldValue('code'),
       });
+      if (!values.code) {
+        message.error('请输入验证码');
+        return;
+      }
+      if (response.code !== 200) {
+        message.error(response.message || '验证码错误');
+        return;
+      }
       setAuthState('resetPassword');
     } catch (error) {
-      message.error('验证失败');
+      message.error('请填写完整信息');
       console.log(error);
     } finally {
       setLoading(false);
@@ -77,20 +138,27 @@ const HomePage: React.FC = () => {
         return;
       }
       setLoading(true);
-      const response = await api.post('/api/user/forgot-password/send-code', { email });
-      message.success(response.data.message || '验证码已发送');
+      const response = await api.post<ApiResponse<{ email: string; expireTime: number }>>(
+        '/api/user/forgot-password/send-code',
+        { email },
+      );
+      if (response.code !== 200) {
+        message.error(response.message || '发送验证码失败');
+        return;
+      }
+      message.success(response.message || '验证码已发送');
       setCountdown(60);
-      const timer = setInterval(() => {
+      timerRef.current = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
-            clearInterval(timer);
+            if (timerRef.current) clearInterval(timerRef.current);
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
     } catch (error) {
-      message.error('发送验证码失败');
+      message.error('网络错误，请稍后重试');
       console.log(error);
     } finally {
       setLoading(false);
@@ -101,16 +169,20 @@ const HomePage: React.FC = () => {
     try {
       setLoading(true);
       const values = await form.validateFields();
-      await api.post('/api/user/reset-password', {
+      const response = await api.post<ApiResponse<null>>('/api/user/reset-password', {
         email: form.getFieldValue('email'),
         code: form.getFieldValue('code'),
-        newPassword: values.newPassword,
+        password: md5(values.newPassword),
       });
-      message.success('密码已重置');
+      if (response.code !== 200) {
+        message.error(response.message || '重置密码失败');
+        return;
+      }
+      message.success('密码已重置，请登录');
       setAuthState('login');
       form.resetFields();
     } catch (error) {
-      message.error('重置密码失败');
+      message.error('网络错误，请稍后重试');
       console.log(error);
     } finally {
       setLoading(false);
@@ -371,4 +443,4 @@ const HomePage: React.FC = () => {
   );
 };
 
-export default HomePage;
+export default LoginPage;
