@@ -1,4 +1,4 @@
-import * as common from 'common';
+import * as common from '@easy-inn-booking-monorepo/common';
 
 const env = import.meta.env;
 
