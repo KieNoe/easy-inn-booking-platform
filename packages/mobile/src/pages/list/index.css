@@ -526,3 +526,16 @@
   font-size: 28rpx;
   color: #999;
 }
+
+/* 加载更多 */
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32rpx 0;
+}
+
+.load-more-text {
+  font-size: 24rpx;
+  color: #999;
+}

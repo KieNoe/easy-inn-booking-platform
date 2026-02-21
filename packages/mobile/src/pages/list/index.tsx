@@ -19,6 +19,9 @@ import 'taro-ui/dist/style/components/flex.scss';
 import Taro from '@tarojs/taro';
 import { ApiClient } from '@easy-inn-booking-monorepo/common';
 
+// 每页显示数量
+const PAGE_SIZE = 5;
+
 // 创建 API 客户端实例
 const apiClient = new ApiClient('https://example.com');
 
@@ -54,6 +57,8 @@ export default function List() {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refresherTriggered, setRefresherTriggered] = useState(false);
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
 
   // 筛选状态
   const [filterState, setFilterState] = useState({
@@ -96,11 +101,13 @@ export default function List() {
 
       const response = await apiClient.get<{ data: Hotel[] }>('/api/hotels', { params });
       setHotels(response.data || []);
+      setDisplayCount(PAGE_SIZE); // 获取新数据时重置显示数量
     } catch (error) {
       console.error('获取酒店列表失败:', error);
       Taro.showToast({ title: '获取列表失败', icon: 'none' });
       // 使用模拟数据作为后备
       setHotels(HOTEL_LIST);
+      setDisplayCount(PAGE_SIZE); // 获取新数据时重置显示数量
     } finally {
       setLoading(false);
     }
@@ -201,6 +208,21 @@ export default function List() {
     });
   };
 
+  // 处理下拉刷新
+  const handleRefresherRefresh = async () => {
+    setRefresherTriggered(true);
+    setDisplayCount(PAGE_SIZE); // 刷新时重置显示数量
+    await fetchHotelList();
+    setRefresherTriggered(false);
+  };
+
+  // 滚动到底部加载更多
+  const handleScrollToLower = () => {
+    if (displayCount < hotels.length) {
+      setDisplayCount((prev) => Math.min(prev + PAGE_SIZE, hotels.length));
+    }
+  };
+
   // 渲染星级
   const renderStars = (count: number) => {
     return Array(count)
@@ -278,7 +300,15 @@ export default function List() {
       </View>
 
       {/* 酒店列表 */}
-      <ScrollView className="hotel-list" scrollY>
+      <ScrollView
+        className="hotel-list"
+        scrollY
+        refresherEnabled
+        refresherTriggered={refresherTriggered}
+        onRefresherRefresh={handleRefresherRefresh}
+        onScrollToLower={handleScrollToLower}
+        lowerThreshold={50}
+      >
         {loading ? (
           <View className="loading-container">
             <Text className="loading-text">加载中...</Text>
@@ -288,62 +318,75 @@ export default function List() {
             <Text className="empty-text">暂无符合条件的酒店</Text>
           </View>
         ) : (
-          hotels.map((hotel) => (
-            <View key={hotel.hotelId} className="hotel-card" onClick={() => navigateToDetail(hotel.hotelId)}>
-              <View className="hotel-image-wrapper">
-                <Image
-                  className="hotel-image"
-                  src={hotel.images[0] || 'https://via.placeholder.com/200x150?text=Hotel'}
-                  mode="aspectFill"
-                />
-                {hotel.isDiscount && (
-                  <View className="discount-badge">
-                    <Text className="discount-text">{hotel.discountInfo}</Text>
-                  </View>
-                )}
-              </View>
-              <View className="hotel-info">
-                <View className="hotel-header">
-                  <Text className="hotel-name">{hotel.name}</Text>
-                  <View className="star-rating">{renderStars(hotel.hotelRating || 0)}</View>
-                </View>
-
-                <View className="hotel-rating-row">
-                  <View className="rating-badge">
-                    <Text className="rating-score">{hotel.reviewScore || '4.5'}</Text>
-                  </View>
-                  <Text className="rating-text">超棒</Text>
-                  <Text className="review-count">{hotel.reviewCount || 0}条点评</Text>
-                  <Text className="collection-count">· {(hotel.reviewCount || 0) * 5}收藏</Text>
-                </View>
-
-                <View className="hotel-location">
-                  <Text className="location-desc">{hotel.address}</Text>
-                </View>
-
-                <View className="hotel-tags">
-                  {hotel.tags?.slice(0, 3).map((tag, index) => (
-                    <AtTag key={index} className="hotel-tag" size="small" type="primary">
-                      {tag}
-                    </AtTag>
-                  ))}
-                </View>
-
-                <View className="hotel-price-row">
-                  <View className="price-info">
-                    <Text className="price-symbol">¥</Text>
-                    <Text className="price-value">{hotel.lowestPrice || hotel.price}</Text>
-                    <Text className="price-start">起</Text>
-                  </View>
+          <>
+            {hotels.slice(0, displayCount).map((hotel) => (
+              <View key={hotel.hotelId} className="hotel-card" onClick={() => navigateToDetail(hotel.hotelId)}>
+                <View className="hotel-image-wrapper">
+                  <Image
+                    className="hotel-image"
+                    src={hotel.images[0] || 'https://via.placeholder.com/200x150?text=Hotel'}
+                    mode="aspectFill"
+                  />
                   {hotel.isDiscount && (
-                    <AtTag className="promo-tag" size="small" type="warning">
-                      钻石贵员价
-                    </AtTag>
+                    <View className="discount-badge">
+                      <Text className="discount-text">{hotel.discountInfo}</Text>
+                    </View>
                   )}
                 </View>
+                <View className="hotel-info">
+                  <View className="hotel-header">
+                    <Text className="hotel-name">{hotel.name}</Text>
+                    <View className="star-rating">{renderStars(hotel.hotelRating || 0)}</View>
+                  </View>
+
+                  <View className="hotel-rating-row">
+                    <View className="rating-badge">
+                      <Text className="rating-score">{hotel.reviewScore || '4.5'}</Text>
+                    </View>
+                    <Text className="rating-text">超棒</Text>
+                    <Text className="review-count">{hotel.reviewCount || 0}条点评</Text>
+                    <Text className="collection-count">· {(hotel.reviewCount || 0) * 5}收藏</Text>
+                  </View>
+
+                  <View className="hotel-location">
+                    <Text className="location-desc">{hotel.address}</Text>
+                  </View>
+
+                  <View className="hotel-tags">
+                    {hotel.tags?.slice(0, 3).map((tag, index) => (
+                      <AtTag key={index} className="hotel-tag" size="small" type="primary">
+                        {tag}
+                      </AtTag>
+                    ))}
+                  </View>
+
+                  <View className="hotel-price-row">
+                    <View className="price-info">
+                      <Text className="price-symbol">¥</Text>
+                      <Text className="price-value">{hotel.lowestPrice || hotel.price}</Text>
+                      <Text className="price-start">起</Text>
+                    </View>
+                    {hotel.isDiscount && (
+                      <AtTag className="promo-tag" size="small" type="warning">
+                        钻石贵员价
+                      </AtTag>
+                    )}
+                  </View>
+                </View>
               </View>
-            </View>
-          ))
+            ))}
+            {/* 加载更多提示 */}
+            {displayCount < hotels.length && (
+              <View className="load-more-container">
+                <Text className="load-more-text">上拉加载更多...</Text>
+              </View>
+            )}
+            {displayCount >= hotels.length && hotels.length > 0 && (
+              <View className="load-more-container">
+                <Text className="load-more-text">已经到底了~</Text>
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
 
