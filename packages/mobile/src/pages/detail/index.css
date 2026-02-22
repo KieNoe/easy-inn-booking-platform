@@ -1,0 +1,273 @@
+.hotel-detail-page {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 16px;
+}
+
+.hotel-info-section {
+  background: white;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+.hotel-image-slider {
+  height: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.hotel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hotel-basic-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.hotel-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  flex: 1;
+}
+
+.hotel-rating {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.rating-score {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff6b35;
+  margin-right: 3px;
+}
+
+.rating-text {
+  font-size: 12px;
+  color: #999;
+}
+
+.hotel-price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ff6b35;
+}
+
+.price-suffix {
+  font-size: 12px;
+  color: #999;
+  font-weight: normal;
+}
+
+.hotel-description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.location-section,
+.search-section,
+.nearby-section {
+  background: white;
+  margin-bottom: 10px;
+  padding: 15px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.location-btn {
+  display: flex;
+  align-items: center;
+  background: #f0f8ff;
+  color: #1890ff;
+  border: 1px solid #1890ff;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.hotel-address {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.address-text {
+  margin-left: 8px;
+  color: #666;
+}
+
+.map-container {
+  height: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hotel-map {
+  width: 100%;
+  height: 100%;
+}
+
+.search-bar {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.search-input {
+  flex: 1;
+  height: 40px;
+  border: 1px solid #ddd;
+  border-radius: 20px 0 0 20px;
+  padding: 0 15px;
+  font-size: 14px;
+}
+
+.clear-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ddd;
+  border-left: none;
+  border-radius: 0;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.search-btn {
+  width: 60px;
+  height: 40px;
+  border: 1px solid #ddd;
+  border-left: none;
+  border-radius: 0 20px 20px 0;
+  background: #1890ff;
+  color: white;
+  font-size: 14px;
+}
+
+.search-results {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.no-results {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+}
+
+.search-result-item,
+.nearby-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.search-result-item:last-child,
+.nearby-item:last-child {
+  border-bottom: none;
+}
+
+.result-icon,
+.item-icon {
+  width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1890ff;
+}
+
+.result-info,
+.item-info {
+  flex: 1;
+}
+
+.result-name,
+.item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 3px;
+}
+
+.result-category,
+.item-category {
+  font-size: 12px;
+  color: #999;
+}
+
+.result-distance,
+.item-distance {
+  font-size: 12px;
+  color: #999;
+  min-width: 40px;
+  text-align: right;
+}
+
+.action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: 60px;
+  background: white;
+  border-top: 1px solid #eee;
+  padding: 0 15px;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 14px;
+}
+
+.contact-btn {
+  background: #f0f8ff;
+  color: #1890ff;
+  border-radius: 4px 0 0 4px;
+  margin-right: 5px;
+}
+
+.navigate-btn {
+  background: #ff6b35;
+  color: white;
+  border-radius: 0 4px 4px 0;
+  margin-left: 5px;
+}
