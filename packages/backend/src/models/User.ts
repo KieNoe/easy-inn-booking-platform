@@ -9,7 +9,7 @@ class User extends Model<UserModel> implements UserModel {
   declare email: string;
   declare phone: string;
   declare avatar: string;
-  declare role: 'super_admin' | 'admin' | 'user';
+  declare role: 'merchant' | 'admin';
   declare status: 'active' | 'inactive';
   declare createTime: string;
   declare readonly updatedAt: Date;
@@ -49,8 +49,8 @@ export const initUserModel = (sequelize: Sequelize) => {
         type: DataTypes.STRING(255),
       },
       role: {
-        type: DataTypes.ENUM('super_admin', 'admin', 'user'),
-        defaultValue: 'user',
+        type: DataTypes.ENUM('merchant', 'admin'),
+        defaultValue: 'merchant',
       },
       status: {
         type: DataTypes.ENUM('active', 'inactive'),
@@ -67,7 +67,7 @@ export const initUserModel = (sequelize: Sequelize) => {
       tableName: 'users',
       timestamps: false,
       underscored: false,
-    }
+    },
   );
 
   return User;
