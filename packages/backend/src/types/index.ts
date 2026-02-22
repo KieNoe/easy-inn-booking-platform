@@ -17,7 +17,7 @@ export interface User {
   email: string;
   phone: string;
   avatar: string;
-  role: 'super_admin' | 'admin' | 'user';
+  role: 'merchant' | 'admin' ;
   status: 'active' | 'inactive';
   createTime: string;
 }
@@ -43,9 +43,39 @@ export interface RegisterRequest {
 }
 
 export interface RegisterResponse {
-  token: string;
-  userInfo: User;
+  userId: number;
+  username: string;
+  email: string;
+  role: string;
+  createTime: string;
+}
+
+/**
+ * 找回密码相关类型
+ */
+export interface SendCodeRequest {
+  email: string;
+}
+
+export interface SendCodeResponse {
+  email: string;
   expireTime: number;
+}
+
+export interface VerifyCodeRequest {
+  email: string;
+  code: string;
+}
+
+export interface VerifyCodeResponse {
+  verified: boolean;
+  expireTime: number;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  code: string;
+  password: string;
 }
 
 /**
