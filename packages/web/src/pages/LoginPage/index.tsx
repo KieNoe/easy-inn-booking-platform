@@ -1,37 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import md5 from 'md5';
-import api from '@/utils/api';
+import { login, register } from '@/services/userService';
+import { ApiResponse } from '@/types/user';
 import { Form, Input, Button, Card, Checkbox, message, Result, Select } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, SafetyOutlined } from '@ant-design/icons';
 import './index.css';
 
 type AuthState = 'login' | 'register' | 'forgotPassword' | 'resetPassword' | 'success';
 
-interface ApiResponse<T = unknown> {
-  code: number;
-  message: string;
-  data: T;
-}
+// Mock验证码存储
+let mockVerificationCodes: Record<string, string> = {};
 
-interface LoginData {
-  token: string;
-  userInfo: {
-    userId: number;
-    username: string;
-    role: string;
-    avatar: string;
-  };
-  expireTime: number;
-}
-
-interface RegisterData {
-  userId: number;
-  username: string;
-  email: string;
-  role: string;
-  createTime: string;
-}
+// 生成随机验证码
+const generateVerificationCode = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6位数字验证码
+};
 
 const LoginPage: React.FC = () => {
   const [authState, setAuthState] = useState<AuthState>('login');
@@ -52,10 +36,9 @@ const LoginPage: React.FC = () => {
   const handleLogin = async () => {
     try {
       setLoading(true);
-      const response = await api.post<ApiResponse<LoginData>>('/api/user/login', {
-        username: form.getFieldValue('username'),
-        password: md5(form.getFieldValue('password')),
-      });
+      const username = form.getFieldValue('username');
+      const password = form.getFieldValue('password');
+      const response = await login(username, password);
       if (response.code !== 200) {
         message.error(response.message || '登录失败');
         return;
@@ -84,7 +67,7 @@ const LoginPage: React.FC = () => {
     try {
       setLoading(true);
       const values = await form.validateFields();
-      const response = await api.post<ApiResponse<RegisterData>>('/api/user/register', {
+      const response = await register({
         username: values.username,
         email: values.email,
         password: md5(values.password),
@@ -109,14 +92,32 @@ const LoginPage: React.FC = () => {
     try {
       setLoading(true);
       const values = await form.validateFields(['email', 'code']);
-      const response = await api.post<ApiResponse<null>>('/api/user/forgot-password/verify-code', {
+      
+      // Mock 验证码验证
+      console.log('verify-code', {
         email: form.getFieldValue('email'),
         code: form.getFieldValue('code'),
       });
-      if (!values.code) {
-        message.error('请输入验证码');
+      
+      // 简单模拟验证码验证
+      const email = form.getFieldValue('email');
+      const enteredCode = form.getFieldValue('code');
+      const storedCode = mockVerificationCodes[email];
+      
+      if (!storedCode || enteredCode !== storedCode) {
+        message.error('验证码错误');
         return;
       }
+      
+      // 验证码正确，清除存储的验证码
+      delete mockVerificationCodes[email];
+      
+      const response = {
+        code: 200,
+        message: '验证成功',
+        data: null
+      };
+      
       if (response.code !== 200) {
         message.error(response.message || '验证码错误');
         return;
@@ -137,11 +138,24 @@ const LoginPage: React.FC = () => {
         message.error('请先输入邮箱');
         return;
       }
-      setLoading(true);
-      const response = await api.post<ApiResponse<{ email: string; expireTime: number }>>(
-        '/api/user/forgot-password/send-code',
-        { email },
-      );
+      
+      // Mock 发送验证码
+      console.log('send-code', { email });
+      
+      // 生成验证码并存储
+      const verificationCode = generateVerificationCode();
+      mockVerificationCodes[email] = verificationCode;
+      console.log(`验证码已发送到 ${email}: ${verificationCode}`);
+      
+      const response = {
+        code: 200,
+        message: '验证码已发送',
+        data: {
+          email: email,
+          expireTime: 300 // 5分钟有效期
+        }
+      };
+      
       if (response.code !== 200) {
         message.error(response.message || '发送验证码失败');
         return;
@@ -169,11 +183,20 @@ const LoginPage: React.FC = () => {
     try {
       setLoading(true);
       const values = await form.validateFields();
-      const response = await api.post<ApiResponse<null>>('/api/user/reset-password', {
+      
+      // Mock 重置密码
+      console.log('reset-password', {
         email: form.getFieldValue('email'),
         code: form.getFieldValue('code'),
         password: md5(values.newPassword),
       });
+      
+      const response = {
+        code: 200,
+        message: '密码重置成功',
+        data: null
+      };
+      
       if (response.code !== 200) {
         message.error(response.message || '重置密码失败');
         return;
