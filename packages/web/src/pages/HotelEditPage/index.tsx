@@ -27,7 +27,7 @@ import {
 import dayjs from 'dayjs';
 
 import { hotelService } from '@/services/hotelService';
-import type { HotelDraftRequest, HotelRoomType, HotelStatus } from '@/types/hotel';
+import type { HotelDraftRequest, HotelRoomType, HotelStatus, UpdateHotelRequest } from '@/types/hotel';
 
 import './index.css';
 
@@ -98,7 +98,7 @@ const HotelEditPage: React.FC = () => {
     const payload = buildPayload(values, status);
 
     if (draftId) {
-      await hotelService.updateHotel(draftId, payload);
+      await hotelService.updateHotel(draftId, payload as UpdateHotelRequest);
       return draftId;
     }
 
@@ -160,6 +160,48 @@ const HotelEditPage: React.FC = () => {
     () => isDirty && !savingDraft && !submitting && !hasErrors,
     [isDirty, savingDraft, submitting, hasErrors],
   );
+
+  // Mock端到端测试功能
+  const runMockTest = () => {
+    // 模拟填写表单数据
+    form.setFieldsValue({
+      basic: {
+        nameCn: '测试酒店名称',
+        nameEn: 'Test Hotel Name',
+        star: 4,
+        openDate: dayjs(),
+        address: '测试地址信息',
+      },
+      priceRange: {
+        min: 300,
+        max: 800,
+      },
+      roomTypes: [
+        {
+          name: '标准大床房',
+          bedType: '大床',
+          area: 30,
+          price: 450,
+          stock: 10,
+        },
+      ],
+      nearby: {
+        attractions: ['测试景点'],
+        transport: ['测试交通'],
+        mall: ['测试商场'],
+      },
+      promotions: [
+        {
+          title: '开业优惠',
+          type: '折扣',
+          value: 0.9,
+        },
+      ],
+    });
+    
+    message.success('已填充测试数据');
+    setIsDirty(true);
+  };
 
   return (
     <div className="hotel-edit-page">
@@ -562,6 +604,9 @@ const HotelEditPage: React.FC = () => {
                 disabled={savingDraft || submitting}
               >
                 重置
+              </Button>
+              <Button onClick={runMockTest}>
+                Mock测试
               </Button>
             </Space>
           </Form>
