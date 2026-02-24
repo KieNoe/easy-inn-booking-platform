@@ -1,37 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import md5 from 'md5';
-import api from '@/utils/api';
 import { Form, Input, Button, Card, Checkbox, message, Result, Select } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, SafetyOutlined } from '@ant-design/icons';
+import {
+  login,
+  register,
+  sendForgotPasswordCode,
+  verifyForgotPasswordCode,
+  resetPassword,
+} from '@/services/userService';
 import './index.css';
 
-type AuthState = 'login' | 'register' | 'forgotPassword' | 'resetPassword' | 'success';
-
-interface ApiResponse<T = unknown> {
-  code: number;
-  message: string;
-  data: T;
-}
-
-interface LoginData {
-  token: string;
-  userInfo: {
-    userId: number;
-    username: string;
-    role: string;
-    avatar: string;
-  };
-  expireTime: number;
-}
-
-interface RegisterData {
-  userId: number;
-  username: string;
-  email: string;
-  role: string;
-  createTime: string;
-}
+type AuthState = 'login' | 'register' | 'forgotPassword' | 'resetPassword' | 'success' | 'networkError';
 
 const LoginPage: React.FC = () => {
   const [authState, setAuthState] = useState<AuthState>('login');
@@ -42,20 +22,48 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 检测网络状态
+    const checkNetworkStatus = () => {
+      if (!navigator.onLine) {
+        setAuthState('networkError');
+      }
+    };
+
+    // 网络恢复处理
+    const handleOnline = () => {
+      setAuthState('login');
+    };
+
+    // 网络断开处理
+    const handleOffline = () => {
+      setAuthState('networkError');
+    };
+
+    // 页面加载时检测
+    checkNetworkStatus();
+
+    // 监听网络状态变化
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
   const handleLogin = async () => {
+    // 检测网络状态
+    if (!navigator.onLine) {
+      setAuthState('networkError');
+      return;
+    }
     try {
       setLoading(true);
-      const response = await api.post<ApiResponse<LoginData>>('/api/user/login', {
-        username: form.getFieldValue('username'),
-        password: md5(form.getFieldValue('password')),
-      });
+      const response = await login(form.getFieldValue('username'), form.getFieldValue('password'));
       if (response.code !== 200) {
         message.error(response.message || '登录失败');
         return;
@@ -81,15 +89,15 @@ const LoginPage: React.FC = () => {
   };
 
   const handleRegister = async () => {
+    // 检测网络状态
+    if (!navigator.onLine) {
+      setAuthState('networkError');
+      return;
+    }
     try {
       setLoading(true);
       const values = await form.validateFields();
-      const response = await api.post<ApiResponse<RegisterData>>('/api/user/register', {
-        username: values.username,
-        email: values.email,
-        password: md5(values.password),
-        role: values.role,
-      });
+      const response = await register(values.username, values.email, values.password, values.role);
       if (response.code !== 200) {
         message.error(response.message || '注册失败');
         return;
@@ -106,17 +114,19 @@ const LoginPage: React.FC = () => {
   };
 
   const handleForgotPassword = async () => {
+    // 检测网络状态
+    if (!navigator.onLine) {
+      setAuthState('networkError');
+      return;
+    }
     try {
       setLoading(true);
       const values = await form.validateFields(['email', 'code']);
-      const response = await api.post<ApiResponse<null>>('/api/user/forgot-password/verify-code', {
-        email: form.getFieldValue('email'),
-        code: form.getFieldValue('code'),
-      });
       if (!values.code) {
         message.error('请输入验证码');
         return;
       }
+      const response = await verifyForgotPasswordCode(form.getFieldValue('email'), form.getFieldValue('code'));
       if (response.code !== 200) {
         message.error(response.message || '验证码错误');
         return;
@@ -131,6 +141,11 @@ const LoginPage: React.FC = () => {
   };
 
   const handleSendCode = async () => {
+    // 检测网络状态
+    if (!navigator.onLine) {
+      setAuthState('networkError');
+      return;
+    }
     try {
       const email = form.getFieldValue('email');
       if (!email) {
@@ -138,10 +153,7 @@ const LoginPage: React.FC = () => {
         return;
       }
       setLoading(true);
-      const response = await api.post<ApiResponse<{ email: string; expireTime: number }>>(
-        '/api/user/forgot-password/send-code',
-        { email },
-      );
+      const response = await sendForgotPasswordCode(email);
       if (response.code !== 200) {
         message.error(response.message || '发送验证码失败');
         return;
@@ -166,14 +178,15 @@ const LoginPage: React.FC = () => {
   };
 
   const handleResetPassword = async () => {
+    // 检测网络状态
+    if (!navigator.onLine) {
+      setAuthState('networkError');
+      return;
+    }
     try {
       setLoading(true);
       const values = await form.validateFields();
-      const response = await api.post<ApiResponse<null>>('/api/user/reset-password', {
-        email: form.getFieldValue('email'),
-        code: form.getFieldValue('code'),
-        password: md5(values.newPassword),
-      });
+      const response = await resetPassword(form.getFieldValue('email'), form.getFieldValue('code'), values.newPassword);
       if (response.code !== 200) {
         message.error(response.message || '重置密码失败');
         return;
@@ -199,11 +212,11 @@ const LoginPage: React.FC = () => {
       size="large"
     >
       <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
-        <Input prefix={<UserOutlined />} placeholder="用户名" />
+        <Input prefix={<UserOutlined />} placeholder="admin为管理员，merchant为商家" />
       </Form.Item>
 
       <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
-        <Input.Password prefix={<LockOutlined />} placeholder="密码" />
+        <Input.Password prefix={<LockOutlined />} placeholder="密码不为空即可" />
       </Form.Item>
 
       <Form.Item>
@@ -402,6 +415,19 @@ const LoginPage: React.FC = () => {
     />
   );
 
+  const renderNetworkError = () => (
+    <Result
+      status="error"
+      title="网络连接失败"
+      subTitle="请检查网络连接后重试"
+      extra={
+        <Button type="primary" onClick={() => window.location.reload()}>
+          重新加载页面
+        </Button>
+      }
+    />
+  );
+
   const renderContent = () => {
     switch (authState) {
       case 'login':
@@ -414,6 +440,8 @@ const LoginPage: React.FC = () => {
         return renderResetPasswordForm();
       case 'success':
         return renderSuccess();
+      case 'networkError':
+        return renderNetworkError();
       default:
         return null;
     }
@@ -429,6 +457,8 @@ const LoginPage: React.FC = () => {
         return '找回密码';
       case 'resetPassword':
         return '重置密码';
+      case 'networkError':
+        return '网络错误';
       default:
         return '';
     }
