@@ -14,10 +14,11 @@ interface HotelAuditCardProps {
 // eslint-disable-next-line no-unused-vars
 type HotelAction = (hotelId: number) => void;
 
-const statusColorMap: Record<string, string> = {
-  pending: 'gold',
-  approved: 'green',
-  rejected: 'red',
+const statusConfig: Record<string, { color: string; text: string }> = {
+  draft: { color: 'default', text: '草稿' },
+  pending: { color: 'gold', text: '待审核' },
+  approved: { color: 'green', text: '已发布' },
+  rejected: { color: 'red', text: '审核拒绝' },
 };
 
 const HotelAuditCard: React.FC<HotelAuditCardProps> = ({ hotel, onApprove, onReject }) => {
@@ -32,10 +33,12 @@ const HotelAuditCard: React.FC<HotelAuditCardProps> = ({ hotel, onApprove, onRej
           {hotel.priceRange ? `￥${hotel.priceRange.min} ~ ￥${hotel.priceRange.max}` : '未填写'}
         </Descriptions.Item>
         <Descriptions.Item label="房型">
-          {hotel.roomTypes?.length ? hotel.roomTypes.join(' / ') : '未填写'}
+          {hotel.roomTypes?.length ? hotel.roomTypes.map((r) => r.name).join(' / ') : '未填写'}
         </Descriptions.Item>
         <Descriptions.Item label="当前状态">
-          <Tag color={statusColorMap[hotel.status] || 'default'}>{hotel.status}</Tag>
+          <Tag color={statusConfig[hotel.status]?.color || 'default'}>
+            {statusConfig[hotel.status]?.text || hotel.status}
+          </Tag>
         </Descriptions.Item>
       </Descriptions>
 

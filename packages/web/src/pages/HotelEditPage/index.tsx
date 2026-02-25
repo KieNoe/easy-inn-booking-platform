@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import {
   Affix,
   Button,
@@ -43,14 +44,55 @@ const roomTypeOptions = ['豪华大床房', '行政套房', '亲子房', '景观
 const bedTypeOptions = ['大床', '双床', '榻榻米', '上下铺'];
 
 const HotelEditPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const [form] = Form.useForm();
   const allValues = Form.useWatch([], form);
   const [draftId, setDraftId] = useState<number | null>(null);
   const [savingDraft, setSavingDraft] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [hasErrors, setHasErrors] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+
+  const isEditMode = !!id;
+
+  // 加载酒店数据（编辑模式）
+  useEffect(() => {
+    if (isEditMode && id) {
+      const loadHotel = async () => {
+        setLoading(true);
+        try {
+          const response = await hotelService.getHotelById(Number(id));
+          const hotel = response?.data;
+          if (hotel) {
+            setDraftId(hotel.hotelId);
+            form.setFieldsValue({
+              basic: {
+                nameCn: hotel.name,
+                nameEn: hotel.description,
+                star: hotel.rating,
+                openDate: hotel.createdAt ? dayjs(hotel.createdAt) : null,
+                address: hotel.address,
+              },
+              priceRange: {
+                min: hotel.price,
+                max: hotel.price * 2,
+              },
+              roomTypes: [],
+              nearby: {},
+              promotions: [],
+            });
+          }
+        } catch (error) {
+          console.error('加载酒店数据失败', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadHotel();
+    }
+  }, [id, isEditMode, form]);
 
   const updateFormStatus = (_: any, allFields: any[]) => {
     setIsDirty(allFields.some((field) => field.touched));
@@ -93,8 +135,8 @@ const HotelEditPage: React.FC = () => {
 
   const unwrapResponse = (response: any) => response?.data?.data ?? response?.data ?? response;
 
-  const saveDraft = async (status: HotelStatus = 'draft') => {
-    const values = await form.validateFields();
+  const saveDraft = async (status: HotelStatus = 'draft', validate: boolean = false) => {
+    const values = validate ? await form.validateFields() : form.getFieldsValue();
     const payload = buildPayload(values, status);
 
     if (draftId) {
@@ -112,11 +154,6 @@ const HotelEditPage: React.FC = () => {
   };
 
   const handleSaveDraft = async () => {
-    if (!form.isFieldsTouched(true)) {
-      message.info('暂无修改内容');
-      return;
-    }
-
     setSavingDraft(true);
     try {
       await saveDraft('draft');
@@ -137,10 +174,7 @@ const HotelEditPage: React.FC = () => {
   const handleAuditSubmit = async () => {
     setSubmitting(true);
     try {
-      const targetId = await saveDraft('pending');
-      if (targetId) {
-        await hotelService.updateHotelStatus(targetId, { status: 'pending' });
-      }
+      await saveDraft('pending', true); // 提交审核时需要校验
       setIsDirty(false);
       setLastSavedAt(dayjs().format('YYYY-MM-DD HH:mm'));
       message.success('已提交审核');
@@ -155,10 +189,13 @@ const HotelEditPage: React.FC = () => {
     }
   };
 
-  const canSubmit = useMemo(() => !savingDraft && !submitting && !hasErrors, [savingDraft, submitting, hasErrors]);
+  const canSubmit = useMemo(
+    () => !savingDraft && !submitting && !loading && !hasErrors,
+    [savingDraft, submitting, loading, hasErrors],
+  );
   const canSaveDraft = useMemo(
-    () => isDirty && !savingDraft && !submitting && !hasErrors,
-    [isDirty, savingDraft, submitting, hasErrors],
+    () => isDirty && !savingDraft && !submitting && !loading,
+    [isDirty, savingDraft, submitting, loading],
   );
 
   // Mock端到端测试功能
@@ -198,7 +235,7 @@ const HotelEditPage: React.FC = () => {
         },
       ],
     });
-    
+
     message.success('已填充测试数据');
     setIsDirty(true);
   };
@@ -208,12 +245,12 @@ const HotelEditPage: React.FC = () => {
       <div className="page-hero">
         <div>
           <Title level={2} className="page-title">
-            酒店信息录入 / 编辑
+            {isEditMode ? '编辑酒店信息' : '酒店信息录入'}
           </Title>
           <Text className="page-subtitle">完整填写酒店基础信息、房型价格与优惠策略，用于后台审核与展示。</Text>
         </div>
-        <Tag color="gold" className="page-tag">
-          审核前草稿可随时修改
+        <Tag color={isEditMode ? 'blue' : 'gold'} className="page-tag">
+          {isEditMode ? `编辑模式 #${id}` : '审核前草稿可随时修改'}
         </Tag>
       </div>
 
@@ -376,6 +413,7 @@ const HotelEditPage: React.FC = () => {
                       if (!value || value.length === 0) {
                         return Promise.reject(new Error('至少添加一个房型'));
                       }
+                      return Promise.resolve();
                     },
                   },
                 ]}
@@ -600,14 +638,16 @@ const HotelEditPage: React.FC = () => {
                   form.resetFields();
                   setIsDirty(false);
                   setHasErrors(false);
+                  if (!isEditMode) {
+                    setDraftId(null);
+                    setLastSavedAt(null);
+                  }
                 }}
-                disabled={savingDraft || submitting}
+                disabled={savingDraft || submitting || loading}
               >
                 重置
               </Button>
-              <Button onClick={runMockTest}>
-                Mock测试
-              </Button>
+              <Button onClick={runMockTest}>Mock测试</Button>
             </Space>
           </Form>
         </Col>

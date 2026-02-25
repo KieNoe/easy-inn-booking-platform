@@ -21,6 +21,7 @@ const HotelDetailPage = () => {
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [searchResults, setSearchResults] = useState<NearbyPlace[]>([]);
   const [showSearchResults, setShowSearchResults] = useState<boolean>(false);
+  const [setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [checkInDate, setCheckInDate] = useState<Date | null>(null);
@@ -33,13 +34,18 @@ const HotelDetailPage = () => {
     const fetchHotelDetail = async () => {
       setIsLoading(true);
       try {
+        // 实际应用中，这里应该是真实的API调用
+        // const response = await hotelService.getHotelDetail(hotelId);
+        // setHotel(response.data);
+
+        // 模拟数据
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         const mockHotel: Hotel = {
-          hotelId: '1',
-          name: '五星豪华大酒店',
+          id: 1,
+          name: '豪华大酒店',
           address: '北京市朝阳区建国路88号',
-          description: '位于市中心的五星级酒店，交通便利，设施齐全。距离地铁站仅500米。',
+          description: '位于市中心的五星级酒店，交通便利，设施齐全。',
           price: 899,
           rating: 4.8,
           hotelRating: 5,
@@ -48,23 +54,10 @@ const HotelDetailPage = () => {
             'https://via.placeholder.com/375x200/cccccc/666666?text=大堂',
             'https://via.placeholder.com/375x200/cccccc/666666?text=客房',
           ],
-          amenities: ['免费WiFi', '游泳池', '健身房', '餐厅', '会议室', '停车场'],
-          roomTypes: [
-            { name: '豪华大床房', bedType: '大床', area: 35, price: 599, stock: 10 },
-            { name: '行政套房', bedType: '大床', area: 50, price: 899, stock: 5 },
-            { name: '亲子房', bedType: '双床', area: 45, price: 799, stock: 8 },
-            { name: '景观双床房', bedType: '双床', area: 40, price: 699, stock: 12 },
-          ],
-          location: {
-            city: '北京',
-            district: '朝阳区',
-            latitude: 39.9042,
-            longitude: 116.4074,
-          },
-          tags: ['五星酒店', '商务出差', '豪华住宿'],
-          status: 'approved',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-01T00:00:00.000Z',
+          facilities: ['免费WiFi', '游泳池', '健身房', '餐厅', '会议室'],
+          latitude: 39.9042, // 北京坐标
+          longitude: 116.4074,
+          phone: '010-12345678',
         };
 
         setHotel(mockHotel);
@@ -86,6 +79,11 @@ const HotelDetailPage = () => {
   useEffect(() => {
     const fetchNearbyPlaces = async () => {
       try {
+        // 实际应用中，这里应该是真实的API调用
+        // const response = await locationService.getNearbyPlaces(hotelId);
+        // setNearbyPlaces(response.data);
+
+        // 模拟数据
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         const mockNearbyPlaces: NearbyPlace[] = [
@@ -180,7 +178,11 @@ const HotelDetailPage = () => {
   const getUserLocation = () => {
     Taro.getLocation({
       type: 'gcj02',
-      success: () => {
+      success: (res) => {
+        setUserLocation({
+          latitude: res.latitude,
+          longitude: res.longitude,
+        });
         Taro.showToast({
           title: '定位成功',
           icon: 'success',
@@ -192,6 +194,19 @@ const HotelDetailPage = () => {
           content: '请检查位置权限是否开启',
           showCancel: true,
           confirmText: '去设置',
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              // 跳转到系统设置页面
+              Taro.openSetting({
+                success: (settingRes) => {
+                  if (settingRes.authSetting['scope.userLocation']) {
+                    // 用户开启了位置权限，重新获取位置
+                    getUserLocation();
+                  }
+                },
+              });
+            }
+          },
         });
       },
     });
@@ -231,6 +246,40 @@ const HotelDetailPage = () => {
     });
   };
 
+  // 拨打电话
+  const makePhoneCall = () => {
+    if (hotel?.phone) {
+      Taro.makePhoneCall({
+        phoneNumber: hotel.phone,
+      });
+    }
+  };
+
+  // 计算距离文本
+  const formatDistance = (distance: number): string => {
+    if (distance < 1000) {
+      return `${Math.round(distance)}m`;
+    } else {
+      return `${(distance / 1000).toFixed(1)}km`;
+    }
+  };
+
+  // 获取类别图标
+  const getCategoryIcon = (category: string): string => {
+    switch (category) {
+      case 'restaurant':
+        return 'fork';
+      case 'attraction':
+        return 'star';
+      case 'transportation':
+        return 'bus';
+      case 'shopping':
+        return 'shopping-cart';
+      default:
+        return 'location';
+    }
+  };
+
   if (isLoading) {
     return (
       <View className="loading-container">
@@ -262,79 +311,24 @@ const HotelDetailPage = () => {
       <View className="image-banner-section">
         <ScrollView className="image-slider" scrollX onScroll={handleImageScroll}>
           {hotel.images.map((image, index) => (
-            <Image key={index} src={image} className="banner-image" mode="aspectFill" />
-          ))}
-        </ScrollView>
-        {/* 图片指示器 */}
-        <View className="image-indicator">
-          {hotel.images.map((_: string, index: number) => (
-            <View key={index} className={`indicator-dot ${index === currentImageIndex ? 'active' : ''}`} />
+            <Image key={index} src={image} className="hotel-image" mode="aspectFill" />
           ))}
         </View>
-      </View>
 
-      {/* 酒店基础信息 */}
-      <View className="hotel-info-card">
-        <View className="info-header">
-          <View className="info-left">
-            <Text className="hotel-name">{hotel.name}</Text>
-            <View className="rating-container">
-              <View className="rating-stars">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <AtIcon key={i} value="star" size="14" color={i < hotel.hotelRating ? '#FFD700' : '#ddd'} />
-                ))}
-              </View>
-              <Text className="rating-score">{hotel.rating}分</Text>
-            </View>
+        <View className="hotel-basic-info">
+          <Text className="hotel-name">{hotel.name}</Text>
+          <View className="hotel-rating">
+            <Text className="rating-score">{hotel.rating}</Text>
+            <Text className="rating-text">分/10</Text>
           </View>
-          <View className="price-badge">
-            <Text className="price">¥{hotel.price}</Text>
-            <Text className="price-suffix">起/晚</Text>
-          </View>
+          <Text className="hotel-price">
+            ¥{hotel.price}
+            <Text className="price-suffix">/晚起</Text>
+          </Text>
         </View>
 
-        {/* 地址信息 */}
-        <View className="address-info">
-          <AtIcon value="map-pin" size="14" color="#999" />
-          <Text className="address-text">{hotel.address}</Text>
-        </View>
-
-        {/* 设施列表 */}
-        {hotel.amenities && hotel.amenities.length > 0 && (
-          <View className="amenities-section">
-            <View className="amenities-list">
-              {hotel.amenities.slice(0, 4).map((amenity, index) => (
-                <View key={index} className="amenity-tag">
-                  <Text>{amenity}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-      </View>
-
-      {/* 日历+人间夜 Banner */}
-      <View className="booking-banner">
-        <View className="date-selector-group">
-          <View className="date-item" onClick={() => setShowCalendar(!showCalendar)}>
-            <Text className="date-label">入住</Text>
-            <Text className="date-value">{formatDate(checkInDate)}</Text>
-          </View>
-          <View className="date-divider"></View>
-          <View className="date-item">
-            <Text className="date-label">退房</Text>
-            <Text className="date-value">{formatDate(checkOutDate)}</Text>
-          </View>
-          <View className="date-divider"></View>
-          <View className="date-item">
-            <Text className="date-label">住宿</Text>
-            <Text className="date-value">{calculateNights()}晚</Text>
-          </View>
-          <View className="date-divider"></View>
-          <View className="date-item">
-            <Text className="date-label">人数</Text>
-            <Text className="date-value">{guests}人</Text>
-          </View>
+        <View className="hotel-description">
+          <Text>{hotel.description}</Text>
         </View>
 
         {/* 日历组件 */}
@@ -392,32 +386,27 @@ const HotelDetailPage = () => {
           <Text className="address-text">{hotel.address}</Text>
         </View>
 
-        {/* 地图 */}
-        {hotel.location?.latitude && hotel.location?.longitude && (
-          <View className="map-container">
-            <Map
-              className="hotel-map"
-              longitude={hotel.location.longitude}
-              latitude={hotel.location.latitude}
-              markers={[
-                {
-                  id: 1,
-                  latitude: hotel.location.latitude,
-                  longitude: hotel.location.longitude,
-                  title: hotel.name,
-                  width: 20,
-                  height: 20,
-                  iconPath: '',
-                },
-              ]}
-              scale={16}
-              onClick={() => navigateToMap(hotel.location?.latitude || 0, hotel.location?.longitude || 0, hotel.name)}
-              onError={() => {
-                console.log('地图加载出错');
-              }}
-            />
-          </View>
-        )}
+        {/* 地图组件 */}
+        <View className="map-container">
+          <Map
+            className="hotel-map"
+            longitude={hotel.longitude}
+            latitude={hotel.latitude}
+            markers={[
+              {
+                id: 1,
+                latitude: hotel.latitude,
+                longitude: hotel.longitude,
+                title: hotel.name,
+                iconPath: '/assets/images/hotel-marker.png',
+                width: 20,
+                height: 20,
+              },
+            ]}
+            scale={16}
+            onClick={() => navigateToMap(hotel.latitude, hotel.longitude, hotel.name)}
+          />
+        </View>
       </View>
 
       {/* 周边搜索 */}
@@ -504,8 +493,12 @@ const HotelDetailPage = () => {
           <AtIcon value="phone" size="16" />
           <Text>联系酒店</Text>
         </Button>
-        <Button className="action-btn book-btn">
-          <Text>立即预订</Text>
+        <Button
+          className="action-btn navigate-btn"
+          onClick={() => navigateToMap(hotel.latitude, hotel.longitude, hotel.name)}
+        >
+          <AtIcon value="navigation" size="16" />
+          <Text>前往酒店</Text>
         </Button>
       </View>
     </ScrollView>

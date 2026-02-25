@@ -16,7 +16,7 @@ const router = createBrowserRouter([
     element: <LoginPage />, // 登录页面
   },
   {
-    path: '/hotel-edit',
+    path: '/hotel-edit/:id?',
     element: <HotelEditPage />,
   },
   {
