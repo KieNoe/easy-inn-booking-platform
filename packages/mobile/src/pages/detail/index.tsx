@@ -1,32 +1,21 @@
-import Taro, { useState, useEffect } from '@tarojs/taro';
 import { View, Text, Image, Map, Button, Input, ScrollView } from '@tarojs/components';
+import Taro from '@tarojs/taro';
+import { useEffect, useState } from 'react';
 import { AtIcon } from 'taro-ui';
+import Calendar from '../../components/Calendar';
+import { Hotel, RoomType } from '../../../types/hotel';
 import './index.css';
-
-interface Hotel {
-  id: number;
-  name: string;
-  address: string;
-  description: string;
-  price: number;
-  rating: number;
-  images: string[];
-  facilities: string[];
-  latitude: number;
-  longitude: number;
-  phone: string;
-}
 
 interface NearbyPlace {
   id: number;
   name: string;
-  category: string; // 'restaurant', 'attraction', 'transportation', 'shopping'
-  distance: number; // 距离（米）
+  category: string;
+  distance: number;
   latitude: number;
   longitude: number;
 }
 
-const HotelDetailPage: Taro.FC = () => {
+const HotelDetailPage = () => {
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
   const [searchKeyword, setSearchKeyword] = useState<string>('');
@@ -34,8 +23,13 @@ const HotelDetailPage: Taro.FC = () => {
   const [showSearchResults, setShowSearchResults] = useState<boolean>(false);
   const [setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [checkInDate, setCheckInDate] = useState<Date | null>(null);
+  const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
+  const [showCalendar, setShowCalendar] = useState<boolean>(false);
+  const [guests] = useState<number>(2);
 
-  // 模拟获取酒店详情（实际应用中应从API获取）
+  // 获取酒店详情
   useEffect(() => {
     const fetchHotelDetail = async () => {
       setIsLoading(true);
@@ -54,6 +48,7 @@ const HotelDetailPage: Taro.FC = () => {
           description: '位于市中心的五星级酒店，交通便利，设施齐全。',
           price: 899,
           rating: 4.8,
+          hotelRating: 5,
           images: [
             'https://via.placeholder.com/375x200/cccccc/666666?text=酒店外观',
             'https://via.placeholder.com/375x200/cccccc/666666?text=大堂',
@@ -80,7 +75,7 @@ const HotelDetailPage: Taro.FC = () => {
     fetchHotelDetail();
   }, []);
 
-  // 获取附近地点数据
+  // 获取附近地点
   useEffect(() => {
     const fetchNearbyPlaces = async () => {
       try {
@@ -111,7 +106,75 @@ const HotelDetailPage: Taro.FC = () => {
     }
   }, [hotel]);
 
-  // 获取用户当前位置
+  // 图片轮播
+  const handleImageScroll = (e: any) => {
+    if (!hotel?.images) return;
+    const scrollLeft = e.detail.scrollLeft;
+    const imageWidth = 375;
+    const newIndex = Math.round(scrollLeft / imageWidth);
+    setCurrentImageIndex(Math.min(newIndex, hotel.images.length - 1));
+  };
+
+  // 日期选择
+  const handleDateSelect = (startDate: Date, endDate: Date | null) => {
+    setCheckInDate(startDate);
+    if (endDate) {
+      setCheckOutDate(endDate);
+      setShowCalendar(false);
+    }
+  };
+
+  // 格式化日期
+  const formatDate = (date: Date | null): string => {
+    if (!date) return '选择日期';
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  };
+
+  // 计算入住天数
+  const calculateNights = (): number => {
+    if (!checkInDate || !checkOutDate) return 1;
+    return Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  // 返回上一页
+  const goBack = () => {
+    Taro.navigateBack();
+  };
+
+  // 拨打电话
+  const makePhoneCall = () => {
+    Taro.showToast({
+      title: '客服: 400-123-4567',
+      icon: 'none',
+    });
+  };
+
+  // 计算距离文本
+  const formatDistance = (distance: number): string => {
+    if (distance < 1000) {
+      return `${Math.round(distance)}m`;
+    } else {
+      return `${(distance / 1000).toFixed(1)}km`;
+    }
+  };
+
+  // 获取类别图标
+  const getCategoryIcon = (category: string): string => {
+    switch (category) {
+      case 'restaurant':
+        return 'fork';
+      case 'attraction':
+        return 'star';
+      case 'transportation':
+        return 'bus';
+      case 'shopping':
+        return 'shopping-cart';
+      default:
+        return 'location';
+    }
+  };
+
+  // 获取用户位置
   const getUserLocation = () => {
     Taro.getLocation({
       type: 'gcj02',
@@ -149,7 +212,7 @@ const HotelDetailPage: Taro.FC = () => {
     });
   };
 
-  // 搜索功能
+  // 搜索
   const handleSearch = () => {
     if (!searchKeyword.trim()) {
       setSearchResults([]);
@@ -172,7 +235,7 @@ const HotelDetailPage: Taro.FC = () => {
     setShowSearchResults(false);
   };
 
-  // 跳转到地图查看位置
+  // 打开地图
   const navigateToMap = (latitude: number, longitude: number, name: string) => {
     Taro.openLocation({
       latitude,
@@ -235,9 +298,18 @@ const HotelDetailPage: Taro.FC = () => {
 
   return (
     <ScrollView className="hotel-detail-page" scrollY>
-      {/* 酒店基本信息 */}
-      <View className="hotel-info-section">
-        <View className="hotel-image-slider">
+      {/* 顶部导航头 */}
+      <View className="header-bar">
+        <Button className="back-btn" onClick={goBack}>
+          <AtIcon value="chevron-left" size="20" color="#333" />
+        </Button>
+        <Text className="header-title">{hotel.name}</Text>
+        <View className="header-placeholder"></View>
+      </View>
+
+      {/* 大图 Banner */}
+      <View className="image-banner-section">
+        <ScrollView className="image-slider" scrollX onScroll={handleImageScroll}>
           {hotel.images.map((image, index) => (
             <Image key={index} src={image} className="hotel-image" mode="aspectFill" />
           ))}
@@ -258,9 +330,48 @@ const HotelDetailPage: Taro.FC = () => {
         <View className="hotel-description">
           <Text>{hotel.description}</Text>
         </View>
+
+        {/* 日历组件 */}
+        {showCalendar && (
+          <View className="calendar-wrapper">
+            <Calendar
+              minDate={new Date()}
+              maxDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)}
+              onDateSelect={handleDateSelect}
+              mode="range"
+            />
+          </View>
+        )}
       </View>
 
-      {/* 位置信息和定位功能 */}
+      {/* 房型价格列表 */}
+      {hotel.roomTypes && hotel.roomTypes.length > 0 && (
+        <View className="room-list-section">
+          <Text className="section-title">房型选择</Text>
+          {hotel.roomTypes.map((room: RoomType, index: number) => (
+            <View key={index} className="room-card">
+              <View className="room-header">
+                <View>
+                  <Text className="room-name">{room.name}</Text>
+                  <View className="room-meta">
+                    <Text className="room-meta-item">{room.bedType}</Text>
+                    <Text className="room-meta-item">{room.area}㎡</Text>
+                  </View>
+                </View>
+              </View>
+              <View className="room-footer">
+                <View className="room-price-info">
+                  <Text className="room-price">¥{room.price}</Text>
+                  <Text className="room-price-suffix">/晚</Text>
+                </View>
+                <Button className="room-select-btn">预订</Button>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* 位置信息 */}
       <View className="location-section">
         <View className="section-header">
           <Text className="section-title">位置信息</Text>
@@ -298,7 +409,7 @@ const HotelDetailPage: Taro.FC = () => {
         </View>
       </View>
 
-      {/* 关键字搜索功能 */}
+      {/* 周边搜索 */}
       <View className="search-section">
         <View className="search-header">
           <Text className="section-title">周边搜索</Text>

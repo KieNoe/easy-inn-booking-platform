@@ -1,7 +1,15 @@
+export interface RoomType {
+  name: string; // 房型名称，如 "豪华大床房"
+  bedType: string; // 床型，如 "大床" 或 "双床"
+  area: number; // 房间面积（平方米）
+  price: number; // 价格
+  stock: number; // 库存/可预订数量
+}
+
 export interface Hotel {
   hotelId: string; // 唯一标识，必选
   name: string; // 酒店名称（中/英），必选
-  description?: string; // 房型描述，可选
+  description?: string; // 酒店描述，可选
   nameEn?: string; // 英文名，可选
   address: string; // 酒店地址，必选
   hotelRating: number;  // 酒店星级，必选
@@ -16,6 +24,7 @@ export interface Hotel {
     longitude?: number; // 经度，可选
   }; // 位置信息，用于筛选和展示，必选
   amenities?: string[]; // 设施，如 "免费WiFi", "停车场"，可选但推荐
+  roomTypes?: RoomType[]; // 房型列表，可选
   isDiscount?: boolean; // 是否有折扣，可选
   discountInfo?: string; // 折扣信息，如 "8折" 或 "满减"，可选
   reviewScore?: number; // 评分，如 4.5，用于排序和展示，推荐
