@@ -12,6 +12,10 @@ export interface Hotel {
   status: HotelStatus;
   createdAt: string;
   updatedAt: string;
+  star?: number;
+  openDate?: string;
+  priceRange?: HotelPriceRange;
+  roomTypes?: HotelRoomType[];
 }
 
 export interface HotelBasicInfo {

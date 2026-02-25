@@ -32,7 +32,7 @@ const HotelDetailPage: Taro.FC = () => {
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [searchResults, setSearchResults] = useState<NearbyPlace[]>([]);
   const [showSearchResults, setShowSearchResults] = useState<boolean>(false);
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // 模拟获取酒店详情（实际应用中应从API获取）
@@ -43,34 +43,34 @@ const HotelDetailPage: Taro.FC = () => {
         // 实际应用中，这里应该是真实的API调用
         // const response = await hotelService.getHotelDetail(hotelId);
         // setHotel(response.data);
-        
+
         // 模拟数据
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         const mockHotel: Hotel = {
           id: 1,
-          name: "豪华大酒店",
-          address: "北京市朝阳区建国路88号",
-          description: "位于市中心的五星级酒店，交通便利，设施齐全。",
+          name: '豪华大酒店',
+          address: '北京市朝阳区建国路88号',
+          description: '位于市中心的五星级酒店，交通便利，设施齐全。',
           price: 899,
           rating: 4.8,
           images: [
-            "https://via.placeholder.com/375x200/cccccc/666666?text=酒店外观",
-            "https://via.placeholder.com/375x200/cccccc/666666?text=大堂",
-            "https://via.placeholder.com/375x200/cccccc/666666?text=客房"
+            'https://via.placeholder.com/375x200/cccccc/666666?text=酒店外观',
+            'https://via.placeholder.com/375x200/cccccc/666666?text=大堂',
+            'https://via.placeholder.com/375x200/cccccc/666666?text=客房',
           ],
-          facilities: ["免费WiFi", "游泳池", "健身房", "餐厅", "会议室"],
+          facilities: ['免费WiFi', '游泳池', '健身房', '餐厅', '会议室'],
           latitude: 39.9042, // 北京坐标
           longitude: 116.4074,
-          phone: "010-12345678"
+          phone: '010-12345678',
         };
-        
+
         setHotel(mockHotel);
       } catch (error) {
         console.error('获取酒店详情失败:', error);
         Taro.showToast({
           title: '获取酒店详情失败',
-          icon: 'none'
+          icon: 'none',
         });
       } finally {
         setIsLoading(false);
@@ -87,19 +87,19 @@ const HotelDetailPage: Taro.FC = () => {
         // 实际应用中，这里应该是真实的API调用
         // const response = await locationService.getNearbyPlaces(hotelId);
         // setNearbyPlaces(response.data);
-        
+
         // 模拟数据
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         const mockNearbyPlaces: NearbyPlace[] = [
-          { id: 1, name: "国贸商城", category: "shopping", distance: 200, latitude: 39.91, longitude: 116.46 },
-          { id: 2, name: "三里屯", category: "attraction", distance: 1200, latitude: 39.93, longitude: 116.44 },
-          { id: 3, name: "朝阳公园", category: "attraction", distance: 1500, latitude: 39.95, longitude: 116.47 },
-          { id: 4, name: "地铁国贸站", category: "transportation", distance: 300, latitude: 39.90, longitude: 116.45 },
-          { id: 5, name: "海底捞火锅", category: "restaurant", distance: 400, latitude: 39.91, longitude: 116.46 },
-          { id: 6, name: "家乐福超市", category: "shopping", distance: 600, latitude: 39.92, longitude: 116.43 }
+          { id: 1, name: '国贸商城', category: 'shopping', distance: 200, latitude: 39.91, longitude: 116.46 },
+          { id: 2, name: '三里屯', category: 'attraction', distance: 1200, latitude: 39.93, longitude: 116.44 },
+          { id: 3, name: '朝阳公园', category: 'attraction', distance: 1500, latitude: 39.95, longitude: 116.47 },
+          { id: 4, name: '地铁国贸站', category: 'transportation', distance: 300, latitude: 39.9, longitude: 116.45 },
+          { id: 5, name: '海底捞火锅', category: 'restaurant', distance: 400, latitude: 39.91, longitude: 116.46 },
+          { id: 6, name: '家乐福超市', category: 'shopping', distance: 600, latitude: 39.92, longitude: 116.43 },
         ];
-        
+
         setNearbyPlaces(mockNearbyPlaces);
       } catch (error) {
         console.error('获取附近地点失败:', error);
@@ -118,11 +118,11 @@ const HotelDetailPage: Taro.FC = () => {
       success: (res) => {
         setUserLocation({
           latitude: res.latitude,
-          longitude: res.longitude
+          longitude: res.longitude,
         });
         Taro.showToast({
           title: '定位成功',
-          icon: 'success'
+          icon: 'success',
         });
       },
       fail: () => {
@@ -140,12 +140,12 @@ const HotelDetailPage: Taro.FC = () => {
                     // 用户开启了位置权限，重新获取位置
                     getUserLocation();
                   }
-                }
+                },
               });
             }
-          }
+          },
         });
-      }
+      },
     });
   };
 
@@ -157,8 +157,8 @@ const HotelDetailPage: Taro.FC = () => {
       return;
     }
 
-    const filteredResults = nearbyPlaces.filter(place =>
-      place.name.toLowerCase().includes(searchKeyword.toLowerCase())
+    const filteredResults = nearbyPlaces.filter((place) =>
+      place.name.toLowerCase().includes(searchKeyword.toLowerCase()),
     );
 
     setSearchResults(filteredResults);
@@ -179,7 +179,7 @@ const HotelDetailPage: Taro.FC = () => {
       longitude,
       name,
       address: name,
-      scale: 16
+      scale: 16,
     });
   };
 
@@ -187,7 +187,7 @@ const HotelDetailPage: Taro.FC = () => {
   const makePhoneCall = () => {
     if (hotel?.phone) {
       Taro.makePhoneCall({
-        phoneNumber: hotel.phone
+        phoneNumber: hotel.phone,
       });
     }
   };
@@ -239,24 +239,22 @@ const HotelDetailPage: Taro.FC = () => {
       <View className="hotel-info-section">
         <View className="hotel-image-slider">
           {hotel.images.map((image, index) => (
-            <Image 
-              key={index}
-              src={image}
-              className="hotel-image"
-              mode="aspectFill"
-            />
+            <Image key={index} src={image} className="hotel-image" mode="aspectFill" />
           ))}
         </View>
-        
+
         <View className="hotel-basic-info">
           <Text className="hotel-name">{hotel.name}</Text>
           <View className="hotel-rating">
             <Text className="rating-score">{hotel.rating}</Text>
             <Text className="rating-text">分/10</Text>
           </View>
-          <Text className="hotel-price">¥{hotel.price}<Text className="price-suffix">/晚起</Text></Text>
+          <Text className="hotel-price">
+            ¥{hotel.price}
+            <Text className="price-suffix">/晚起</Text>
+          </Text>
         </View>
-        
+
         <View className="hotel-description">
           <Text>{hotel.description}</Text>
         </View>
@@ -271,12 +269,12 @@ const HotelDetailPage: Taro.FC = () => {
             <Text>获取位置</Text>
           </Button>
         </View>
-        
+
         <View className="hotel-address">
           <AtIcon value="map-pin" size="16" color="#666" />
           <Text className="address-text">{hotel.address}</Text>
         </View>
-        
+
         {/* 地图组件 */}
         <View className="map-container">
           <Map
@@ -289,13 +287,13 @@ const HotelDetailPage: Taro.FC = () => {
                 latitude: hotel.latitude,
                 longitude: hotel.longitude,
                 title: hotel.name,
-                iconPath: "/assets/images/hotel-marker.png",
+                iconPath: '/assets/images/hotel-marker.png',
                 width: 20,
-                height: 20
-              }
+                height: 20,
+              },
             ]}
             scale={16}
-            onClick={(e) => navigateToMap(hotel.latitude, hotel.longitude, hotel.name)}
+            onClick={() => navigateToMap(hotel.latitude, hotel.longitude, hotel.name)}
           />
         </View>
       </View>
@@ -305,7 +303,7 @@ const HotelDetailPage: Taro.FC = () => {
         <View className="search-header">
           <Text className="section-title">周边搜索</Text>
         </View>
-        
+
         <View className="search-bar">
           <Input
             className="search-input"
@@ -323,13 +321,13 @@ const HotelDetailPage: Taro.FC = () => {
             搜索
           </Button>
         </View>
-        
+
         {showSearchResults && (
           <View className="search-results">
             {searchResults.length > 0 ? (
-              searchResults.map(place => (
-                <View 
-                  key={place.id} 
+              searchResults.map((place) => (
+                <View
+                  key={place.id}
                   className="search-result-item"
                   onClick={() => navigateToMap(place.latitude, place.longitude, place.name)}
                 >
@@ -357,11 +355,11 @@ const HotelDetailPage: Taro.FC = () => {
         <View className="section-header">
           <Text className="section-title">周边地点</Text>
         </View>
-        
+
         <View className="nearby-list">
-          {nearbyPlaces.map(place => (
-            <View 
-              key={place.id} 
+          {nearbyPlaces.map((place) => (
+            <View
+              key={place.id}
               className="nearby-item"
               onClick={() => navigateToMap(place.latitude, place.longitude, place.name)}
             >
@@ -384,8 +382,8 @@ const HotelDetailPage: Taro.FC = () => {
           <AtIcon value="phone" size="16" />
           <Text>联系酒店</Text>
         </Button>
-        <Button 
-          className="action-btn navigate-btn" 
+        <Button
+          className="action-btn navigate-btn"
           onClick={() => navigateToMap(hotel.latitude, hotel.longitude, hotel.name)}
         >
           <AtIcon value="navigation" size="16" />

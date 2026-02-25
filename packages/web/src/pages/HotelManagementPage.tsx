@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Table, Space, Button, Input, Select, Modal, message, Spin } from 'antd';
+import { Card, Table, Space, Button, Input, Select, Modal, message, Spin, Tag } from 'antd';
 import { EyeOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
 import { hotelService } from '@/services/hotelService';
+import { MOCK_HOTELS } from '@/services/contants';
 import { Hotel, HotelStatus } from '@/types/hotel';
 import HotelAuditCard from '../components/HotelAuditCard';
 
 const { Search } = Input;
 
 const HotelManagementPage: React.FC = () => {
-  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [hotels, setHotels] = useState<Hotel[]>(MOCK_HOTELS);
   const [loading, setLoading] = useState(false);
   const [currentHotel, setCurrentHotel] = useState<Hotel | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -34,11 +35,11 @@ const HotelManagementPage: React.FC = () => {
         status: statusFilter || undefined,
       });
 
-      setHotels(data.content);
+      setHotels(data.data.content);
       setPagination({
         current: page,
         pageSize: size,
-        total: data.totalElements,
+        total: data.data.totalElements,
       });
     } catch {
       message.error('加载酒店列表失败');
@@ -81,12 +82,23 @@ const HotelManagementPage: React.FC = () => {
     {
       title: '状态',
       dataIndex: 'status',
+      render: (status: string) => {
+        const statusConfig: Record<string, { color: string; text: string }> = {
+          draft: { color: 'default', text: '草稿' },
+          pending: { color: 'gold', text: '待审核' },
+          approved: { color: 'green', text: '已发布' },
+          rejected: { color: 'red', text: '审核拒绝' },
+        };
+        const config = statusConfig[status] || { color: 'default', text: status };
+        return <Tag color={config.color}>{config.text}</Tag>;
+      },
     },
     {
       title: '操作',
       render: (_, record) => (
         <Button
           icon={<EyeOutlined />}
+          disabled={record.status !== 'pending'}
           onClick={() => {
             setCurrentHotel(record);
             setModalVisible(true);
