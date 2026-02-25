@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AtIcon } from 'taro-ui';
 import Calendar from '../../components/Calendar';
 import { Hotel, RoomType } from '../../../types/hotel';
+import { HOTELS } from './contants';
 import './index.css';
 
 interface NearbyPlace {
@@ -21,13 +22,15 @@ const HotelDetailPage = () => {
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [searchResults, setSearchResults] = useState<NearbyPlace[]>([]);
   const [showSearchResults, setShowSearchResults] = useState<boolean>(false);
-  const [setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [checkInDate, setCheckInDate] = useState<Date | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
   const [showCalendar, setShowCalendar] = useState<boolean>(false);
   const [guests] = useState<number>(2);
+
+  console.log(userLocation, currentImageIndex, checkInDate, checkOutDate, guests);
 
   // 获取酒店详情
   useEffect(() => {
@@ -41,26 +44,9 @@ const HotelDetailPage = () => {
         // 模拟数据
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        const mockHotel: Hotel = {
-          id: 1,
-          name: '豪华大酒店',
-          address: '北京市朝阳区建国路88号',
-          description: '位于市中心的五星级酒店，交通便利，设施齐全。',
-          price: 899,
-          rating: 4.8,
-          hotelRating: 5,
-          images: [
-            'https://via.placeholder.com/375x200/cccccc/666666?text=酒店外观',
-            'https://via.placeholder.com/375x200/cccccc/666666?text=大堂',
-            'https://via.placeholder.com/375x200/cccccc/666666?text=客房',
-          ],
-          facilities: ['免费WiFi', '游泳池', '健身房', '餐厅', '会议室'],
-          latitude: 39.9042, // 北京坐标
-          longitude: 116.4074,
-          phone: '010-12345678',
-        };
+        const mockHotel: Hotel[] = HOTELS;
 
-        setHotel(mockHotel);
+        setHotel(mockHotel[0]);
       } catch (error) {
         console.error('获取酒店详情失败:', error);
         Taro.showToast({
@@ -124,17 +110,17 @@ const HotelDetailPage = () => {
     }
   };
 
-  // 格式化日期
-  const formatDate = (date: Date | null): string => {
-    if (!date) return '选择日期';
-    return `${date.getMonth() + 1}/${date.getDate()}`;
-  };
+  // // 格式化日期
+  // const formatDate = (date: Date | null): string => {
+  //   if (!date) return '选择日期';
+  //   return `${date.getMonth() + 1}/${date.getDate()}`;
+  // };
 
-  // 计算入住天数
-  const calculateNights = (): number => {
-    if (!checkInDate || !checkOutDate) return 1;
-    return Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
-  };
+  // // 计算入住天数
+  // const calculateNights = (): number => {
+  //   if (!checkInDate || !checkOutDate) return 1;
+  //   return Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+  // };
 
   // 返回上一页
   const goBack = () => {
@@ -246,40 +232,6 @@ const HotelDetailPage = () => {
     });
   };
 
-  // 拨打电话
-  const makePhoneCall = () => {
-    if (hotel?.phone) {
-      Taro.makePhoneCall({
-        phoneNumber: hotel.phone,
-      });
-    }
-  };
-
-  // 计算距离文本
-  const formatDistance = (distance: number): string => {
-    if (distance < 1000) {
-      return `${Math.round(distance)}m`;
-    } else {
-      return `${(distance / 1000).toFixed(1)}km`;
-    }
-  };
-
-  // 获取类别图标
-  const getCategoryIcon = (category: string): string => {
-    switch (category) {
-      case 'restaurant':
-        return 'fork';
-      case 'attraction':
-        return 'star';
-      case 'transportation':
-        return 'bus';
-      case 'shopping':
-        return 'shopping-cart';
-      default:
-        return 'location';
-    }
-  };
-
   if (isLoading) {
     return (
       <View className="loading-container">
@@ -313,7 +265,7 @@ const HotelDetailPage = () => {
           {hotel.images.map((image, index) => (
             <Image key={index} src={image} className="hotel-image" mode="aspectFill" />
           ))}
-        </View>
+        </ScrollView>
 
         <View className="hotel-basic-info">
           <Text className="hotel-name">{hotel.name}</Text>
@@ -387,26 +339,29 @@ const HotelDetailPage = () => {
         </View>
 
         {/* 地图组件 */}
-        <View className="map-container">
-          <Map
-            className="hotel-map"
-            longitude={hotel.longitude}
-            latitude={hotel.latitude}
-            markers={[
-              {
-                id: 1,
-                latitude: hotel.latitude,
-                longitude: hotel.longitude,
-                title: hotel.name,
-                iconPath: '/assets/images/hotel-marker.png',
-                width: 20,
-                height: 20,
-              },
-            ]}
-            scale={16}
-            onClick={() => navigateToMap(hotel.latitude, hotel.longitude, hotel.name)}
-          />
-        </View>
+        {hotel.location.latitude && hotel.location.longitude && (
+          <View className="map-container">
+            {/* @ts-expect-error Taro Map 组件类型定义问题 */}
+            <Map
+              className="hotel-map"
+              longitude={hotel.location.longitude!}
+              latitude={hotel.location.latitude!}
+              markers={[
+                {
+                  id: 1,
+                  latitude: hotel.location.latitude!,
+                  longitude: hotel.location.longitude!,
+                  title: hotel.name,
+                  iconPath: 'https://3gimg.qq.com/lightmap/api_v2/2/4/79/theme/default/imgs/marker.png',
+                  width: 20,
+                  height: 20,
+                },
+              ]}
+              scale={16}
+              onTap={() => navigateToMap(hotel.location.latitude!, hotel.location.longitude!, hotel.name)}
+            />
+          </View>
+        )}
       </View>
 
       {/* 周边搜索 */}
@@ -495,7 +450,11 @@ const HotelDetailPage = () => {
         </Button>
         <Button
           className="action-btn navigate-btn"
-          onClick={() => navigateToMap(hotel.latitude, hotel.longitude, hotel.name)}
+          onClick={() => {
+            if (hotel.location.latitude && hotel.location.longitude) {
+              navigateToMap(hotel.location.latitude, hotel.location.longitude, hotel.name);
+            }
+          }}
         >
           <AtIcon value="navigation" size="16" />
           <Text>前往酒店</Text>

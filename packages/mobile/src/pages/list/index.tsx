@@ -17,13 +17,13 @@ import 'taro-ui/dist/style/components/checkbox.scss';
 import 'taro-ui/dist/style/components/radio.scss';
 import 'taro-ui/dist/style/components/flex.scss';
 import Taro from '@tarojs/taro';
-import { ApiClient } from '@easy-inn-booking-monorepo/common';
+// import { ApiClient } from '@easy-inn-booking-monorepo/common';
 
 // 每页显示数量
 const PAGE_SIZE = 5;
 
 // 创建 API 客户端实例
-const apiClient = new ApiClient('https://example.com');
+// const apiClient = new ApiClient('https://example.com');
 
 // 筛选选项
 const SORT_OPTIONS = [
@@ -83,31 +83,9 @@ export default function List() {
   const fetchHotelList = useCallback(async () => {
     setLoading(true);
     try {
-      const params = {
-        city: currentCity,
-        checkInDate,
-        checkOutDate,
-        keyword: searchValue,
-        sort: activeSort,
-        tags: selectedTags.join(','),
-        priceMin: filterState.priceRange.min,
-        priceMax: filterState.priceRange.max,
-        starMin: filterState.starRange.min,
-        starMax: filterState.starRange.max,
-        ratingMin: filterState.ratingRange.min,
-        ratingMax: filterState.ratingRange.max,
-        hasDiscount: filterState.hasDiscount === 'yes' ? true : undefined,
-      };
-
-      const response = await apiClient.get<{ data: Hotel[] }>('/api/hotels', { params });
-      setHotels(response.data || []);
-      setDisplayCount(PAGE_SIZE); // 获取新数据时重置显示数量
-    } catch (error) {
-      console.error('获取酒店列表失败:', error);
-      Taro.showToast({ title: '获取列表失败', icon: 'none' });
-      // 使用模拟数据作为后备
       setHotels(HOTEL_LIST);
       setDisplayCount(PAGE_SIZE); // 获取新数据时重置显示数量
+      console.log('获取酒店列表成功');
     } finally {
       setLoading(false);
     }

@@ -132,6 +132,7 @@
 }
 /* 酒店列表 */
 .hotel-list {
+  height: calc(100vh - 380rpx);
   padding: 0 24rpx 24rpx;
 }
 .hotel-card {

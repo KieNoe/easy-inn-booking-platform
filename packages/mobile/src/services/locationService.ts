@@ -1,4 +1,4 @@
-import { api } from '@/utils/api';
+// import { api } from '@/utils/api';
 
 export interface CityItem {
   id: number;
@@ -23,14 +23,38 @@ export const locationService = {
     if (keyword) {
       params.keyword = keyword;
     }
-    
-    const response = await api.get('/api/cities', { params });
-    return response.data;
+
+    // const response = await api.get('/api/cities', { params });
+    // return response.data;
+    return {
+      code: 0,
+      message: 'success',
+      data: {
+        cities: [
+          { id: 1, name: '北京', pinyin: 'beijing', level: 1 },
+          { id: 2, name: '上海', pinyin: 'shanghai', level: 1 },
+          { id: 3, name: '广州', pinyin: 'guangzhou', level: 2 },
+          { id: 4, name: '深圳', pinyin: 'shenzhen', level: 2 },
+        ],
+      },
+    };
   },
 
   // 获取热门城市
   getPopularCities: async (): Promise<LocationResponse> => {
-    const response = await api.get('/api/cities/popular');
-    return response.data;
+    // const response = await api.get('/api/cities/popular');
+    // return response.data;
+    return {
+      code: 0,
+      message: 'success',
+      data: {
+        cities: [
+          { id: 1, name: '北京', pinyin: 'beijing', level: 1, isPopular: true },
+          { id: 2, name: '上海', pinyin: 'shanghai', level: 1, isPopular: true },
+          { id: 3, name: '广州', pinyin: 'guangzhou', level: 2, isPopular: true },
+          { id: 4, name: '深圳', pinyin: 'shenzhen', level: 2, isPopular: true },
+        ],
+      },
+    };
   },
 };

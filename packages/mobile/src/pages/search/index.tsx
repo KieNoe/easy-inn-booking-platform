@@ -1,11 +1,12 @@
-import Taro, { useState, useEffect } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
+import { useState, useEffect } from 'react';
 import { View, Text, Input, Picker, Button, Image } from '@tarojs/components';
 import { AtIcon } from 'taro-ui';
 import Calendar from '../../components/Calendar';
 import { locationService, CityItem } from '../../services/locationService';
 import './index.css';
 
-const SearchPage: Taro.FC = () => {
+const SearchPage = () => {
   const [destination, setDestination] = useState<string>(''); // 目的地
   const [cities, setCities] = useState<CityItem[]>([]); // 城市列表
   const [checkInDate, setCheckInDate] = useState<Date | null>(null); // 入住日期
@@ -77,20 +78,20 @@ const SearchPage: Taro.FC = () => {
       destination,
       checkInDate: checkInDate ? checkInDate.toISOString().split('T')[0] : null,
       checkOutDate: checkOutDate ? checkOutDate.toISOString().split('T')[0] : null,
-      guests
+      guests,
     });
-    
+
     if (!checkInDate || !checkOutDate) {
       Taro.showToast({
         title: '请先选择入住和退房日期',
-        icon: 'none'
+        icon: 'none',
       });
       return;
     }
-    
+
     // 跳转到搜索结果页面
     Taro.navigateTo({
-      url: `/pages/list/index?destination=${encodeURIComponent(destination)}&checkIn=${checkInDate.toISOString().split('T')[0]}&checkOut=${checkOutDate.toISOString().split('T')[0]}&guests=${guests}`
+      url: `/pages/list/index?destination=${encodeURIComponent(destination)}&checkIn=${checkInDate.toISOString().split('T')[0]}&checkOut=${checkOutDate.toISOString().split('T')[0]}&guests=${guests}`,
     });
   };
 
@@ -107,10 +108,10 @@ const SearchPage: Taro.FC = () => {
 
   const calculateStayNights = (): string => {
     if (!checkInDate || !checkOutDate) return '共?晚';
-    
+
     const diffTime = Math.abs(checkOutDate.getTime() - checkInDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return `共${diffDays}晚`;
   };
 
@@ -118,11 +119,7 @@ const SearchPage: Taro.FC = () => {
     <View className="search-page">
       {/* 顶部 Banner */}
       <View className="banner-section">
-        <Image 
-          src="https://static.easy-inn.com/images/search-banner.jpg" 
-          className="banner-image"
-          mode="aspectFill"
-        />
+        <Image src="https://static.easy-inn.com/images/search-banner.jpg" className="banner-image" mode="aspectFill" />
         <View className="banner-overlay">
           <Text className="banner-title">发现理想住宿</Text>
           <Text className="banner-subtitle">探索全球精选酒店</Text>
@@ -138,16 +135,16 @@ const SearchPage: Taro.FC = () => {
           </View>
           <Picker
             mode="selector"
-            range={cities.map(city => city.name)}
+            range={cities.map((city) => city.name)}
             onChange={(e) => {
-              const index = parseInt(e.detail.value);
+              const index = Number(e.detail.value);
               setDestination(cities[index].name);
             }}
           >
             <View className="picker-input">
               <Input
                 className="input-field"
-                placeholder={loading ? "加载中..." : "输入目的地"}
+                placeholder={loading ? '加载中...' : '输入目的地'}
                 value={destination}
                 disabled={loading}
               />
@@ -157,10 +154,7 @@ const SearchPage: Taro.FC = () => {
         </View>
 
         {/* 日期选择区域 - 携程风格 */}
-        <View 
-          className="date-selection"
-          onClick={() => setShowCalendar(true)}
-        >
+        <View className="date-selection" onClick={() => setShowCalendar(true)}>
           <View className="date-item">
             <Text className="date-label">入住</Text>
             <View className="date-value">
@@ -168,12 +162,12 @@ const SearchPage: Taro.FC = () => {
               <Text className="date-day">{formatDay(checkInDate)}</Text>
             </View>
           </View>
-          
+
           <View className="date-separator">
             <View className="separator-line"></View>
             <Text className="nights-count">{calculateStayNights()}</Text>
           </View>
-          
+
           <View className="date-item">
             <Text className="date-label">离店</Text>
             <View className="date-value">
@@ -190,19 +184,14 @@ const SearchPage: Taro.FC = () => {
           </View>
           <Picker
             mode="selector"
-            range={[1, 2, 3, 4, 5, 6].map(num => `${num}人`)}
+            range={[1, 2, 3, 4, 5, 6].map((num) => `${num}人`)}
             onChange={(e) => {
-              const index = parseInt(e.detail.value);
+              const index = Number(e.detail.value);
               setGuests([1, 2, 3, 4, 5, 6][index]);
             }}
           >
             <View className="picker-input">
-              <Input
-                className="input-field"
-                placeholder="选择人数"
-                value={`${guests}人`}
-                disabled
-              />
+              <Input className="input-field" placeholder="选择人数" value={`${guests}人`} disabled />
               <Text className="arrow-down">▼</Text>
             </View>
           </Picker>
@@ -211,10 +200,7 @@ const SearchPage: Taro.FC = () => {
 
       {/* 查询按钮 - 携程风格 */}
       <View className="search-button-container">
-        <Button 
-          className="search-button" 
-          onClick={handleSearch}
-        >
+        <Button className="search-button" onClick={handleSearch}>
           搜索酒店
         </Button>
       </View>
@@ -224,7 +210,9 @@ const SearchPage: Taro.FC = () => {
         <View className="calendar-modal">
           <View className="calendar-modal-content">
             <View className="calendar-modal-header">
-              <Text className="close-btn" onClick={() => setShowCalendar(false)}>×</Text>
+              <Text className="close-btn" onClick={() => setShowCalendar(false)}>
+                ×
+              </Text>
               <Text className="calendar-title">选择日期</Text>
             </View>
             <Calendar
@@ -234,8 +222,8 @@ const SearchPage: Taro.FC = () => {
               mode="range"
             />
             <View className="calendar-actions">
-              <Button 
-                className="confirm-btn" 
+              <Button
+                className="confirm-btn"
                 onClick={() => setShowCalendar(false)}
                 disabled={!checkInDate || !checkOutDate}
               >
