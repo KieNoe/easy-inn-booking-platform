@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 
-const Layout: React.FC = () => {
-  return <div className="layout"></div>;
+const Layout: React.FC<PropsWithChildren> = ({ children }) => {
+  return (
+    <div className="layout">
+      {children}
+    </div>
+  );
 };
 
 export default Layout;

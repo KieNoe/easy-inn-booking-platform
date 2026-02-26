@@ -1,63 +1,59 @@
-// export interface User {
-//   id: number
-//   username: string
-//   email: string
-//   name: string
-//   phone?: string
-//   avatar?: string
-//   role: 'user' | 'admin' | 'merchant'
-//   status: 'active' | 'inactive'
-//   createdAt: string
-//   updatedAt: string
-// }
+// 用户相关类型定义
 
-// export interface LoginCredentials {
-//   username: string
-//   password: string
-// }
+// API响应数据格式
+export interface ApiResponse<T = any> {
+  code: number;
+  message: string;
+  data: T;
+}
 
-// export interface RegisterData {
-//   username: string
-//   email: string
-//   password: string
-//   confirmPassword: string
-//   name: string
-//   phone?: string
-// }
+// 登录请求参数
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
 
-// export interface AuthResponse {
-//   user: User
-//   token: string
-//   refreshToken: string
-// }export interface User {
-//   id: number
-//   username: string
-//   email: string
-//   name: string
-//   phone?: string
-//   avatar?: string
-//   role: 'user' | 'admin' | 'merchant'
-//   status: 'active' | 'inactive'
-//   createdAt: string
-//   updatedAt: string
-// }
+// 登录响应数据
+export interface LoginData {
+  token: string;
+  userInfo: {
+    userId: number;
+    username: string;
+    role: string;
+    avatar: string;
+  };
+  expireTime: number;
+}
 
-// export interface LoginCredentials {
-//   username: string
-//   password: string
-// }
+// 注册请求参数
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+  role?: string;
+}
 
-// export interface RegisterData {
-//   username: string
-//   email: string
-//   password: string
-//   confirmPassword: string
-//   name: string
-//   phone?: string
-// }
+// 注册响应数据
+export interface RegisterData {
+  userId: number;
+  username: string;
+  email: string;
+  role: string;
+  createTime: string;
+}
 
-// export interface AuthResponse {
-//   user: User
-//   token: string
-//   refreshToken: string
-// }
+// 用户信息
+export interface User {
+  userId: number;
+  username: string;
+  email: string;
+  role: string;
+  avatar: string;
+  status: string;
+  createTime: string;
+}
+
+// 更新用户状态请求参数
+export interface UpdateUserStatusRequest {
+  status: string;
+}

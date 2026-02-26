@@ -1,0 +1,163 @@
+.calendar-container {
+  background: white;
+  padding: 15px 0;
+  width: 100%;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.prev-month-btn,
+.next-month-btn {
+  font-size: 18px;
+  padding: 5px 15px;
+  border-radius: 50%;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+}
+
+.current-month {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.weekdays-header {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 15px;
+  margin-bottom: 10px;
+}
+
+.weekday-title {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.weekday-title.weekend {
+  color: #ff6b35;
+}
+
+.calendar-grid {
+  height: 350px;
+  padding: 0 15px;
+}
+
+.calendar-month {
+  width: 100%;
+}
+
+.calendar-week {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 5px;
+}
+
+.calendar-day-cell {
+  flex: 1;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: 0 2px;
+  border-radius: 4px;
+}
+
+.calendar-day-cell.current-month {
+  color: #333;
+}
+
+.calendar-day-cell.other-month {
+  color: #ccc;
+}
+
+.calendar-day-cell.weekend {
+  color: #ff6b35;
+}
+
+.calendar-day-cell.today {
+  color: #ff6b35;
+}
+
+.day-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+.day-number {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.today-label {
+  font-size: 8px;
+  color: #ff6b35;
+}
+
+.selected-bg {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.selected-bg.start {
+  background: #ff6b35;
+  color: white;
+}
+
+.selected-bg.end {
+  background: #ff6b35;
+  color: white;
+}
+
+.selected-bg.range {
+  background: #ffece6;
+  color: #ff6b35;
+}
+
+.range-connector {
+  position: absolute;
+  width: 100%;
+  height: 30px;
+  background: #ffece6;
+  left: -50%;
+  z-index: 0;
+  border-radius: 0;
+}
+
+.calendar-day-cell.start-date .day-number,
+.calendar-day-cell.end-date .day-number {
+  color: white;
+}
+
+.calendar-day-cell.in-range {
+  background: #ffece6;
+  color: #ff6b35;
+}
+
+.calendar-day-cell.disabled {
+  color: #ccc;
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.calendar-day-cell.disabled .day-number {
+  color: #ccc;
+}
