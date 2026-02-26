@@ -8,19 +8,19 @@ import ProtectedRoute from '@components/common/ProtectedRoute';
 
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: '/hotel',
     element: <LoginPage />,
   },
   {
-    path: '/login',
+    path: '/hotel/login',
     element: <LoginPage />, // 登录页面
   },
   {
-    path: '/hotel-edit/:id?',
+    path: '/hotel/hotel-edit/:id?',
     element: <HotelEditPage />,
   },
   {
-    path: '/hotel-management',
+    path: '/hotel/hotel-management',
     element: (
       <ProtectedRoute>
         <HotelManagementPage />

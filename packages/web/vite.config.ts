@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import { viteMockServe } from 'vite-plugin-mock';
 
 export default defineConfig({
+  base: '/hotel/',
   plugins: [
     react(),
     viteMockServe({
